@@ -11,8 +11,8 @@ import { LoggerModule } from 'nestjs-pino';
       isGlobal: true,
       load: [AppConfig],
     }),
-    HealthModule,
 
+    HealthModule,
     LoggerModule.forRootAsync(loggerConfig),
   ],
 })

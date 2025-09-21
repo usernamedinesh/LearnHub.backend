@@ -10,11 +10,8 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
     bufferLogs: true, // required for async logger setup
   });
-
   const logger = app.get(PinoLogger);
-
   app.useLogger(logger);
-
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
@@ -48,4 +45,5 @@ async function bootstrap() {
     'bootstrap',
   );
 }
+
 bootstrap();
