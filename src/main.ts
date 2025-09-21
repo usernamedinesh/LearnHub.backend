@@ -6,6 +6,7 @@ import { Logger as PinoLogger, LoggerErrorInterceptor } from 'nestjs-pino';
 import { corsConfig } from './config/cors.config';
 import { setupShutdownHooks } from './config/shutdown.config';
 import { env } from './config/env.config';
+import { testDbConnection } from './config/db';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
@@ -38,6 +39,7 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, document);
 
+  testDbConnection();
   await app.listen(env.PORT);
 
   logger.log(
