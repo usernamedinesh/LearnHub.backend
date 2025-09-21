@@ -3,11 +3,17 @@ import { AppModule } from './modules/app.module';
 import { ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { Logger as PinoLogger, LoggerErrorInterceptor } from 'nestjs-pino';
+import { corsConfig } from './config/cors.config';
+import { setupShutdownHooks } from './config/shutdown.config';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
     bufferLogs: true, // required for async logger setup
   });
+
+  const logger = app.get(PinoLogger);
+
+  app.useLogger(logger);
 
   app.useGlobalPipes(
     new ValidationPipe({
@@ -17,8 +23,12 @@ async function bootstrap() {
     }),
   );
 
+  app.enableCors(corsConfig());
+
+  setupShutdownHooks(app);
+
   app.setGlobalPrefix('api/v1');
-  app.useLogger(app.get(PinoLogger));
+
   app.useGlobalInterceptors(new LoggerErrorInterceptor());
 
   const config = new DocumentBuilder()
@@ -32,7 +42,10 @@ async function bootstrap() {
 
   const port = process.env.PORT || 8001;
   await app.listen(port);
-  const logger = app.get(PinoLogger);
-  logger.log(`🚀 App running at http://localhost:${port}/api`, 'Bootstrap');
+
+  logger.log(
+    `🚀 Server is running at http://localhost:${port}/api`,
+    'bootstrap',
+  );
 }
 bootstrap();
