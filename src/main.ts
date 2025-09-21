@@ -5,6 +5,7 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { Logger as PinoLogger, LoggerErrorInterceptor } from 'nestjs-pino';
 import { corsConfig } from './config/cors.config';
 import { setupShutdownHooks } from './config/shutdown.config';
+import { env } from './config/env.config';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
@@ -37,11 +38,10 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, document);
 
-  const port = process.env.PORT || 8001;
-  await app.listen(port);
+  await app.listen(env.PORT);
 
   logger.log(
-    `🚀 Server is running at http://localhost:${port}/api`,
+    `🚀 Server is running at http://localhost:${env.PORT}/api`,
     'bootstrap',
   );
 }
