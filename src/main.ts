@@ -25,7 +25,7 @@ async function bootstrap() {
 
   app.enableCors(corsConfig());
 
-  setupShutdownHooks(app);
+  await setupShutdownHooks(app);
 
   app.setGlobalPrefix('api/v1');
 
@@ -43,7 +43,7 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, document);
 
-  testDbConnection();
+  await testDbConnection();
   await app.listen(env.PORT);
 
   logger.log(
@@ -52,4 +52,4 @@ async function bootstrap() {
   );
 }
 
-bootstrap();
+void bootstrap();

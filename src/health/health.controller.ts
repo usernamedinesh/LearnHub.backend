@@ -1,7 +1,6 @@
 import { Controller, Get } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
-import { db } from 'src/config/db';
-import { users } from 'src/schema';
+import { allUser } from 'src/database';
 
 @ApiTags('Health')
 @Controller('health')
@@ -10,13 +9,12 @@ export class HealthController {
 
   @Get()
   async checkHealth() {
-    const user = db.select().from(users);
-    console.log('USER', user);
+    const user = await allUser;
     return {
       status: 'ok',
       uptime: process.uptime(),
       timestamp: Date.now(),
-      // user,
+      user,
     };
   }
 }
