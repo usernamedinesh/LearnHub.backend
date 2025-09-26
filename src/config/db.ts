@@ -3,8 +3,11 @@ import { Pool } from 'pg';
 import { env } from './env.config';
 import * as schema from '../schema';
 
+const dbUrl =
+  env.NODE_ENV === 'development' ? env.LOCAL_DB_URL : env.DATABASE_URL;
+
 const pool = new Pool({
-  connectionString: env.DATABASE_URL,
+  connectionString: dbUrl,
   ssl: {
     rejectUnauthorized: false, // Supabase requires SSL, but allows self-signed certs
   },

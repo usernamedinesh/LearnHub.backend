@@ -5,6 +5,7 @@ import { HealthModule } from 'src/health/health.module';
 import { loggerConfig } from 'src/config/logger.config';
 import { LoggerModule } from 'nestjs-pino';
 import { UserModule } from './users/user.module';
+import { db } from './config/db';
 
 @Module({
   imports: [
@@ -18,6 +19,11 @@ import { UserModule } from './users/user.module';
     UserModule,
   ],
   controllers: [],
-  providers: [],
+  providers: [
+    {
+      provide: 'DATABASE',
+      useValue: db,
+    },
+  ],
 })
 export class AppModule {}

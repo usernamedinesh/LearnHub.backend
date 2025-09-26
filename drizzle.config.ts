@@ -1,13 +1,17 @@
-import { defineConfig } from 'drizzle-kit';
 import { env } from 'src/config/env.config';
+import * as dotenv from 'dotenv';
+dotenv.config();
 
-export default defineConfig({
+const dbUrl =
+  env.NODE_ENV === 'development' ? env.LOCAL_DB_URL : env.DATABASE_URL;
+
+export default {
   out: './drizzle',
   dialect: 'postgresql',
   schema: './src/schema',
 
   dbCredentials: {
-    url: env.DATABASE_URL,
+    url: dbUrl,
   },
 
   extensionsFilters: ['postgis'],
@@ -35,4 +39,4 @@ export default defineConfig({
   breakpoints: true,
   strict: true,
   verbose: true,
-});
+};
