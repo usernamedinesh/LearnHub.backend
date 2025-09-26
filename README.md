@@ -6,15 +6,23 @@
 
 $ npm install
 
+## supabase
 ```bash
 # Direct apply to database
-$ npx drizzle-kit pushh
+$ npx drizzle-kit push  Or (npm run generate:migration)
 
 # generate migration sql file
 $ npx drizzle-kit generate
 
 # generate migration sql file(apply to db)
-$ npx drizzle-kit migration
+$ npm run migrate:remote  
+
+# Locally
+# Run docker 
+$ docker-compose up -d 
+$ npx drizzle-kit generate Or (npm run generate:migration)
+# migrate the local  
+$ npm run migrate:local 
 
 ## Compile and run the project
 
