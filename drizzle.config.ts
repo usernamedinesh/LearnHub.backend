@@ -11,6 +11,7 @@ export default {
   schema: './src/schema',
 
   dbCredentials: {
+    // url: env.LOCAL_DB_URL, // if u want to migrate Locally then add env.LOCAL_DB_URL
     url: dbUrl,
   },
 

@@ -4,6 +4,7 @@ import { Body, Controller, Get, Post, UseFilters } from '@nestjs/common';
 import { HttpExceptionFilter } from 'src/common/filters/http-exception.filter';
 import { UserService } from './user.service';
 import { CreateUserDto, LoginUserDto } from './user.dto';
+import { Param } from '@nestjs/common';
 
 @Controller('users')
 //appy on whole controller
@@ -16,19 +17,18 @@ export class UserController {
     return this.userService.findAll();
   }
 
-  @Post('/create-new-user')
-  async createUsers(@Body() createUserDto: CreateUserDto) {
-    return this.userService.create(createUserDto);
-  }
-
-  @Post('/login')
-  async loginUsers(@Body() loginUserDto: LoginUserDto) {
-    return this.userService.login(loginUserDto);
-  }
-
-  // @Get(':id')
-  // async getUserById(@Param('id') id: string) {
-  //   return this.userService.findOne(id);
+  // @Post('/create-new-user')
+  // async createUsers(@Body() createUserDto: CreateUserDto) {
+  //   return this.userService.create(createUserDto);
   // }
+
+  // @Post('/login')
+  // async loginUsers(@Body() loginUserDto: LoginUserDto) {
+  //   return this.userService.login(loginUserDto);
+  // }
+
+  @Get(':id')
+  async getUserById(@Param('id') id: string) {
+    return this.userService.findOne(id);
+  }
 }
-// import { Param } from 'drizzle-orm';

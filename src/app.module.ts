@@ -5,6 +5,7 @@ import { HealthModule } from 'src/health/health.module';
 import { loggerConfig } from 'src/config/logger.config';
 import { LoggerModule } from 'nestjs-pino';
 import { UserModule } from './users/user.module';
+import { AuthModule } from './auth/auth.module';
 import { db } from './config/db';
 
 @Module({
@@ -17,6 +18,7 @@ import { db } from './config/db';
     HealthModule,
     LoggerModule.forRootAsync(loggerConfig),
     UserModule,
+    AuthModule,
   ],
   controllers: [],
   providers: [

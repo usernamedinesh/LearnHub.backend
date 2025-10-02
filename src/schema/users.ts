@@ -11,6 +11,7 @@ import {
   jsonb,
   unique,
 } from 'drizzle-orm/pg-core';
+import { userRole } from './type';
 
 export const users = pgTable(
   'users',
@@ -20,7 +21,7 @@ export const users = pgTable(
     email: varchar('email', { length: 255 }).notNull().unique(),
     phoneNumber: varchar('phone_number', { length: 20 }).unique(),
     password: varchar('password', { length: 255 }).notNull(), // hashed password
-    role: varchar('role', { length: 50 }).default('user').notNull(), // default role is 'user'
+    role: varchar('role', { length: 50 }).default(userRole.User).notNull(), // default role is 'user'
     isActive: boolean('isActive').default(true).notNull(),
     profilePicture: varchar('profile_picture', { length: 255 }),
     isVerified: boolean('is_verified').default(false),
@@ -31,6 +32,10 @@ export const users = pgTable(
     lastLogin: timestamp('last_login'),
     createdAt: timestamp('created_at').defaultNow().notNull(),
     updatedAt: timestamp('updated_at').defaultNow().notNull(),
+    refreshToken: varchar('refresh_token', { length: 255 }),
+    tokenVersion: integer('token_version').default(0),
+    resetPasswordToken: varchar('reset_password_token', { length: 255 }),
+    resetPasswordExpire: timestamp('reset_password_expire'),
   },
   (table) => ({
     emailIdx: index('email_idx').on(table.email),

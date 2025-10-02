@@ -13,6 +13,7 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
     bufferLogs: true, // required for async logger setup
   });
+
   const logger = app.get(PinoLogger);
   app.useLogger(logger);
   app.useGlobalPipes(
@@ -43,8 +44,8 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, document);
 
-  await testDbConnection();
-  await app.listen(env.PORT);
+await testDbConnection();
+await app.listen(env.PORT);
 
   logger.log(
     `🚀 Server is running at http://localhost:${env.PORT}/api`,

@@ -37,7 +37,6 @@ export class UserService {
           eq(users.phoneNumber, createUserDto.phoneNumber ?? ''),
         ),
       });
-      console.log('exisintUser', exisintUser);
       if (exisintUser) {
         throw new ConflictException(
           exisintUser.email === createUserDto.email
@@ -64,16 +63,30 @@ export class UserService {
   }
 
   async findAll() {
-    const allUsers = await db.select().from(users);
-    const usersWithoutPasswords = allUsers.map(
-      ({ password: _password, ...rest }) => rest,
-    );
+    try {
+      const allUsers = await db.select().from(users);
+      if (allUsers.length === 0) {
+        return {
+          status: 'success',
+          message: 'No user found!',
+        };
+      }
+      const usersWithoutPasswords = allUsers.map(
+        ({ password: _password, ...rest }) => rest,
+      );
 
-    return {
-      status: 'success',
-      message: 'user fetched successfully',
-      data: usersWithoutPasswords,
-    };
+      return {
+        status: 'success',
+        message: 'user fetched successfully',
+        data: usersWithoutPasswords,
+      };
+    } catch (error) {
+      console.error('DB error:', error);
+      return {
+        status: 'error',
+        message: 'Internal server error',
+      };
+    }
   }
 
   async login(loginDto: LoginUserDto) {
@@ -113,7 +126,7 @@ export class UserService {
       throw new NotFoundException(`User with ID ${id} not found`);
     }
 
-    const { password, ...safeUser } = user;
+    const { password: _password, ...safeUser } = user;
     return {
       status: 'success',
       data: safeUser,
