@@ -13,10 +13,18 @@ import { db } from 'src/config/db';
 import { users } from '../schema/users';
 import { eq, or } from 'drizzle-orm';
 import * as bcrypt from 'bcryptjs';
+import { User, userRole } from 'src/schema/type';
+import { AuthService } from 'src/auth/auth.service';
+
 
 @Injectable()
 export class UserService {
-  async create(createUserDto: CreateUserDto) {
+
+    constructor(
+        private  authService: AuthService
+    ) {}
+
+  async create(createUserDto: CreateUserDto):Promise<User> {
     const hashedPassword = await bcrypt.hash(createUserDto.password, 10);
 
     const userToCreate = {
@@ -24,7 +32,7 @@ export class UserService {
       email: createUserDto.email,
       phoneNumber: createUserDto.phoneNumber,
       password: hashedPassword,
-      role: createUserDto.role ?? 'student',
+      role: createUserDto.role ?? userRole.User,
       isActive: createUserDto.isActive ?? true,
       createdAt: new Date(),
       updatedAt: new Date(),
@@ -44,16 +52,11 @@ export class UserService {
             : 'phoneNumber already exist',
         );
       }
-
       const [newUser] = await db.insert(users).values(userToCreate).returning();
 
       // Don't return the password
       const { password: _password, ...safeUser } = newUser;
-      return {
-        status: 'success',
-        message: 'user created successfully',
-        data: safeUser,
-      };
+      return safeUser as User;
     } catch (error) {
       if (error instanceof HttpException) {
         throw error;
@@ -89,6 +92,20 @@ export class UserService {
     }
   }
 
+    //me route
+  async profile(userId) {
+
+    const user = await db.query.users.findFirst({
+      where: eq(users.id, parseInt(userId, 10)),
+    });
+
+    const { password: _password, ...safeUser } = user;
+    return {
+      status: 'success',
+      data: safeUser,
+    };
+   }
+
   async login(loginDto: LoginUserDto) {
     const { email, password, phoneNumber } = loginDto;
 
@@ -109,12 +126,7 @@ export class UserService {
     }
 
     const { password: _pw, ...safeUser } = user;
-
-    return {
-      status: 'success',
-      message: 'user login successfully',
-      data: safeUser,
-    };
+    return safeUser;
   }
 
   async findOne(id: string) {
