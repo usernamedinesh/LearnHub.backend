@@ -12,7 +12,9 @@ const envSchema = z.object({
 
   DATABASE_URL: z.string().url().optional(),
   LOCAL_DB_URL: z.string().url().optional(),
-  JWT_SECRET: z.string().min(1, 'JWT_SECRET is required'),
+  JWT_ACCESS_SECRET: z.string().min(1, 'JWT_ACCESS_SECRET is required'),
+  JWT_REFRESH_SECRET: z.string().min(1, 'JWT_REFRESH_SECRET is required'),
+
 });
 
 // 🔸 Define the TypeScript type from the schema

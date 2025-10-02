@@ -7,12 +7,19 @@ import { LoggerModule } from 'nestjs-pino';
 import { UserModule } from './users/user.module';
 import { AuthModule } from './auth/auth.module';
 import { db } from './config/db';
+import { JwtModule } from '@nestjs/jwt';
+import { env } from './config/env.config';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
       load: [AppConfig],
+    }),
+
+    JwtModule.register({
+      secret: env.JWT_ACCESS_SECRET,
+      signOptions: {expiresIn: "15m" },
     }),
 
     HealthModule,
@@ -27,5 +34,6 @@ import { db } from './config/db';
       useValue: db,
     },
   ],
+    exports:[JwtModule]
 })
 export class AppModule {}
