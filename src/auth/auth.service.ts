@@ -9,6 +9,7 @@ import type { Response ,Request} from 'express';
 export interface JwtPayload {
   userId: number;
   role: userRole;
+  tokenVersion: number;
 }
 
 @Injectable()
@@ -19,7 +20,6 @@ export class AuthService {
 
     async generateTokens(payload: JwtPayload): Promise<{ accessToken: string; refreshToken: string }> {
         const accessToken = this.jwtService.sign(payload, {expiresIn: "15m"})
-
         const refreshToken = this.jwtService.sign(payload, {expiresIn: "7d",secret: env.JWT_REFRESH_SECRET})
         return {refreshToken, accessToken}
     }
@@ -36,6 +36,7 @@ async refreshToken(@Req() req: Request, @Res({ passthrough: true }) res: Respons
     const newTokens = await this.generateTokens({
       userId: payload.userId,
       role: payload.role,
+      tokenVersion: 0
     });
 
     res.cookie('refreshToken', newTokens.refreshToken, {

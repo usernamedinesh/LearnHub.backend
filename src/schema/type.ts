@@ -1,4 +1,5 @@
 import { InferInsertModel, InferSelectModel } from "drizzle-orm";
+import type { InferModel } from 'drizzle-orm';
 import { users } from "./users";
 
 export enum userRole {
@@ -6,6 +7,7 @@ export enum userRole {
     Instructor = "instructor",
     Student = "student",
 }
-export type User = InferSelectModel<typeof users>;
-export type NewUser = InferInsertModel<typeof users>;
-export type SafeUser = Omit<NewUser, 'password'>;
+
+export type User = InferModel<typeof users>;           // For SELECT (reading from DB)
+export type NewUser = InferModel<typeof users, 'insert'>;  // For INSERT (creating new user)
+export type SafeUser = Omit<User, 'password'>;

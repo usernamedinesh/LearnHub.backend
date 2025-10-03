@@ -17,7 +17,8 @@ import { AuthGuard } from './auth.guard';
     ConfigModule, // optional but good if you use config in this module
   ],
   controllers: [AuthController],
-  providers: [AuthService, AuthGuard],
+  providers: [AuthService, AuthGuard,
+    ],
   exports: [AuthService, AuthGuard],
 })
 export class AuthModule {}

@@ -1,12 +1,14 @@
-import { Body, Request,Controller, Post, UseFilters, Injectable, HttpCode, HttpStatus, Res, UseGuards, Get } from '@nestjs/common';
+import {Request, Body, Controller, Post, UseFilters, Injectable, HttpCode, HttpStatus, Res, UseGuards, Get } from '@nestjs/common';
 import { HttpExceptionFilter } from 'src/common/filters/http-exception.filter';
 import { SendOtpDto } from './dto/sendOtpDto';
 import { AuthService } from './auth.service';
 import { CreateUserDto, LoginUserDto } from 'src/users/user.dto';
 import { UserService } from 'src/users/user.service';
-import type { Response } from 'express';
-import { userRole } from 'src/schema/type';
+import type {  Response } from 'express';
 import { AuthGuard } from './auth.guard';
+import { RolesGuard } from './role.guard';
+import { Roles } from './roles.decorator';
+import { userRole } from 'src/schema/type';
 
 
 
@@ -25,11 +27,11 @@ export class AuthController {
 
   @Post('/create-new-user')
   async createUsers(@Res({passthrough: true}) res: Response, @Body() createUserDto: CreateUserDto) {
-    const user = await  this.userService.create(createUserDto);
-    const token = await this.authService.generateTokens({userId: user.id, role: user.role as userRole})
+    // const user = await  this.userService.create(createUserDto);
+    const { safeUser, accessToken, refreshToken }  = await this.userService.create(createUserDto)
 
     //Set refreshToken as HTTP-only cookie
-    res.cookie("refreshToken", token.refreshToken, {
+    res.cookie("refreshToken", refreshToken, {
         httpOnly: true,
         secure: false, //false for localhost, true in production
         sameSite: 'strict',
@@ -39,26 +41,27 @@ export class AuthController {
    return {
      status: 'success',
      message: 'user created successfully',
-     data: user,
-     accessToken: token.accessToken,
+     data: safeUser,
+     accessToken: accessToken,
    };
   }
 
-  @UseGuards(AuthGuard)
+  @UseGuards(AuthGuard , RolesGuard)
+  @Roles(userRole.Instructor) //TODO: Removes this
   @Get("me")
-  async profile(@Request() req) {
-        const userId = req.user.userId
-    return await this.userService.profile(userId);
-  }
+    async profile(@Request() req: Request) {
+      const userId = (req as any).user.userId;
+      return await this.userService.profile(userId);
+    }
 
  @HttpCode(HttpStatus.OK)
   @Post('/login')
   async loginUsers(@Res({passthrough: true}) res: Response, @Body() loginUserDto: LoginUserDto) {
-    const user = await this.userService.login(loginUserDto)
-    const token = await this.authService.generateTokens({userId: user.id, role: user.role as userRole})
+    const { safeUser, accessToken, refreshToken }  = await this.userService.login(loginUserDto)
+
 
     //Set refreshToken as HTTP-only cookie
-    res.cookie("refreshToken", token.refreshToken, {
+    res.cookie("refreshToken", refreshToken, {
         httpOnly: true,
         secure: false, //false for localhost, true in production
         sameSite: 'strict',
@@ -68,8 +71,8 @@ export class AuthController {
     return {
       status: 'success',
       message: 'user login successfully',
-      data: user,
-      accessToken: token.accessToken,
+      data: safeUser,
+      accessToken: accessToken,
     };
-    }
+  }
 }

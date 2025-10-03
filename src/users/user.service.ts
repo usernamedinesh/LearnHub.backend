@@ -13,8 +13,15 @@ import { db } from 'src/config/db';
 import { users } from '../schema/users';
 import { eq, or } from 'drizzle-orm';
 import * as bcrypt from 'bcryptjs';
-import { User, userRole } from 'src/schema/type';
+import { SafeUser, User, userRole } from 'src/schema/type';
 import { AuthService } from 'src/auth/auth.service';
+import { omit } from 'zod/mini';
+
+type LoginReturn = {
+  safeUser: SafeUser;
+  accessToken: string;
+  refreshToken: string;
+};
 
 
 @Injectable()
@@ -24,7 +31,7 @@ export class UserService {
         private  authService: AuthService
     ) {}
 
-  async create(createUserDto: CreateUserDto):Promise<User> {
+  async create(createUserDto: CreateUserDto) {
     const hashedPassword = await bcrypt.hash(createUserDto.password, 10);
 
     const userToCreate = {
@@ -55,8 +62,22 @@ export class UserService {
       const [newUser] = await db.insert(users).values(userToCreate).returning();
 
       // Don't return the password
-      const { password: _password, ...safeUser } = newUser;
-      return safeUser as User;
+
+   // Use the existing tokenVersion from DB
+   const tokenVersion = newUser.tokenVersion ?? 0;
+
+    const token = await this.authService.generateTokens({userId: newUser.id, role: newUser.role as userRole, tokenVersion})
+    //save refreshToken in db
+await db.update(users)
+  .set({ refreshToken: await bcrypt.hash(token.refreshToken, 10) })
+  .where(eq(users.id, newUser.id));
+
+
+     const { password: _password, ...safeUser } = newUser as User;
+
+    return { safeUser: safeUser as SafeUser, accessToken: token.accessToken, refreshToken: token.refreshToken };
+
+
     } catch (error) {
       if (error instanceof HttpException) {
         throw error;
@@ -93,7 +114,7 @@ export class UserService {
   }
 
     //me route
-  async profile(userId) {
+  async profile(userId:string) {
 
     const user = await db.query.users.findFirst({
       where: eq(users.id, parseInt(userId, 10)),
@@ -125,8 +146,18 @@ export class UserService {
       throw new UnauthorizedException('Invalid password');
     }
 
-    const { password: _pw, ...safeUser } = user;
-    return safeUser;
+   // Use the existing tokenVersion from DB
+   const tokenVersion = user.tokenVersion ?? 0;
+
+    const token = await this.authService.generateTokens({userId: user.id, role: user.role as userRole, tokenVersion})
+    //save refreshToken in db
+await db.update(users)
+  .set({ refreshToken: await bcrypt.hash(token.refreshToken, 10) })
+  .where(eq(users.id, user.id));
+
+    const { password: _password, ...safeUser } = user;
+    return { safeUser, accessToken: token.accessToken, refreshToken: token.refreshToken };
+
   }
 
   async findOne(id: string) {
