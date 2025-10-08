@@ -72,3 +72,12 @@ export class LoginUserDto {
   @IsString({ message: 'Password must be a string' })
   password: string;
 }
+
+export class UpdatePassword {
+
+  @IsString({ message: 'Phone number must be a string' })
+  newPassword?: string;
+
+  @IsString({ message: 'Password must be a string' })
+  password: string;
+}

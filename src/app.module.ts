@@ -9,6 +9,7 @@ import { AuthModule } from './auth/auth.module';
 import { db } from './config/db';
 import { JwtModule } from '@nestjs/jwt';
 import { env } from './config/env.config';
+import { CourseModule } from './course/course.module';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { env } from './config/env.config';
     LoggerModule.forRootAsync(loggerConfig),
     UserModule,
     AuthModule,
+    CourseModule,
   ],
   controllers: [],
   providers: [

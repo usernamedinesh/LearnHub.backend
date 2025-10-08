@@ -1,9 +1,15 @@
 import { Injectable, Post, Req, Res, UnauthorizedException } from '@nestjs/common';
-import { SendOtpDto } from './dto/sendOtpDto';
+// import { SendOtpDto } from './dto/sendOtpDto';
+import { generateOtp, getOtpExpiry } from 'src/otp/otp.utils';
+import { EmailService } from 'src/email/email.service';
 import { JwtService } from '@nestjs/jwt';
 import { userRole } from 'src/schema/type';
 import { env } from 'src/config/env.config';
 import type { Response ,Request} from 'express';
+import { OtpVerificationDto } from './dto/otpVerificationDto';
+import { db } from 'src/config/db';
+import { eq } from 'drizzle-orm';
+import { otp, users } from 'src/schema';
 
 
 export interface JwtPayload {
@@ -15,7 +21,8 @@ export interface JwtPayload {
 @Injectable()
 export class AuthService {
     constructor(
-        private  jwtService: JwtService
+        private  jwtService: JwtService,
+        private readonly emailServie: EmailService
     ) {}
 
 async generateTokens(payload: JwtPayload): Promise<{ accessToken: string; refreshToken: string }> {
@@ -26,7 +33,7 @@ async generateTokens(payload: JwtPayload): Promise<{ accessToken: string; refres
 
 @Post('refresh')
 async refreshToken(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
-  const token = req.cookies['refreshToken'];
+  const token: string = req.cookies['refreshToken'] as string;
   if (!token) throw new UnauthorizedException();
 
   try {
@@ -50,7 +57,61 @@ async refreshToken(@Req() req: Request, @Res({ passthrough: true }) res: Respons
       accessToken: newTokens.accessToken,
     };
   } catch (err) {
+    console.error("Error: ", err)
     throw new UnauthorizedException('Invalid refresh token');
   }
  }
+
+ async otpVerifyCodeSend(otpVerifyCode: OtpVerificationDto, userId: number){
+  // Check the email is exist in User schema 
+  // I have created an another Schema OTP for strong otp
+  // So if the id is already exit in otp shcema then just update the otp
+  // Then update send the OTP to the email
+  const user = await db.query.users.findFirst({
+    where: eq(users.id, userId)
+  })
+
+  if (!user || user.email !== otpVerifyCode.email) { 
+    throw new Error(`User not found or email mismatched`)
+  }
+
+  // Check if the OTP record exists for this user
+  const existingOtp = await db.query.otp.findFirst({
+    where: eq(otp.userId, userId)
+  });
+  const OTP = generateOtp(6);
+  const expiresAt = getOtpExpiry(3); 
+
+  if (existingOtp) {
+    // update exising user OTP
+    await db.update(otp).set({
+      otp: OTP,
+      expiresAt,
+      usedAt: null //reset usage
+    }).where(eq(otp.userId, userId))
+      
+  } else { 
+    // Create new OTP record 
+    await db.insert(otp).values({
+      userId, 
+      otp: OTP,
+      createdAt: new Date(),
+      expiresAt
+    });
+  }
+
+  //SEND HERE OTP
+  await this.emailServie.sendOtpEmail(otpVerifyCode.email, OTP );
+  return { 
+    success: true,
+    message:"OTP Send Sucessfully!",
+     data: {
+        userId: user.id,
+        email: user.email,
+        otpExpiresAt: expiresAt,
+        otp: OTP,
+      },
+  }
+ }
 }
+

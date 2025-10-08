@@ -10,6 +10,7 @@ import { RolesGuard } from './role.guard';
 import { Roles } from './roles.decorator';
 import { userRole } from 'src/schema/type';
 import { updatePasswordDto } from 'src/users/DTO/user.dto';
+import { OtpVerificationDto } from './dto/otpVerificationDto';
 
 
 
@@ -114,9 +115,18 @@ export class AuthController {
       @Req() req: Request,
       @Body() updatePasswordDto: updatePasswordDto,
     ) {
-      const userId = (req as any).user.userId;
+      const userId: number = (req as any).user.userId;
       return await this.userService.updateProfile(updatePasswordDto, userId);
     }
+    // send-verify-code-for student verfication
+    @UseGuards(AuthGuard)
+    @Post("/send-verification-code")
+    async sendVerficationCode(
+      @Req() req: Request,
+      @Body() otpVerifyCode: OtpVerificationDto) {
+        const userId: number = (req as any).user.userId;
+        return await this.authService.otpVerifyCodeSend(otpVerifyCode, userId)
+      }
 
 }
 

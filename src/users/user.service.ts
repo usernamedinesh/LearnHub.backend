@@ -1,6 +1,7 @@
 //handle db logics
 
 import {
+    BadRequestException,
   ConflictException,
   HttpException,
   Injectable,
@@ -16,6 +17,7 @@ import * as bcrypt from 'bcryptjs';
 import { SafeUser, User, userRole } from 'src/schema/type';
 import { AuthService } from 'src/auth/auth.service';
 import { omit } from 'zod/mini';
+import { updatePasswordDto } from './DTO/user.dto';
 
 type LoginReturn = {
   safeUser: SafeUser;
@@ -30,6 +32,12 @@ export class UserService {
     constructor(
         private  authService: AuthService
     ) {}
+
+    //Hash Password
+    async hashPassword(plainPassword: string):Promise<string> {
+        const saltRounds = 10;
+        return await bcrypt.hash(plainPassword, saltRounds);
+    }
 
   async create(createUserDto: CreateUserDto) {
     const hashedPassword = await bcrypt.hash(createUserDto.password, 10);
@@ -113,7 +121,7 @@ await db.update(users)
     }
   }
 
-    //me route
+  //ME
   async profile(userId:string) {
 
     const user = await db.query.users.findFirst({
@@ -127,6 +135,7 @@ await db.update(users)
     };
    }
 
+  //LOGIN
   async login(loginDto: LoginUserDto) {
     const { email, password, phoneNumber } = loginDto;
 
@@ -160,9 +169,9 @@ await db.update(users)
 
   }
 
-  async findOne(id: string) {
+  async findOne(id: number) {
     const user = await db.query.users.findFirst({
-      where: eq(users.id, parseInt(id, 10)),
+      where: eq(users.id, id),
     });
 
     if (!user) {
@@ -175,4 +184,35 @@ await db.update(users)
       data: safeUser,
     };
   }
+
+    //me password
+  async updateProfile( updatePasswordDto:updatePasswordDto, userId: number) {
+
+    const user = await db.query.users.findFirst({
+      where: eq(users.id, userId),
+    });
+
+    if (!user) {
+      throw new NotFoundException(`User with ID ${userId} not found`);
+     }
+
+    //compare the password
+     const isPasswordMatched = await bcrypt.compare(updatePasswordDto.password, user.password)
+    if (!isPasswordMatched) {
+        throw new  BadRequestException("Current password is incorrect");
+    }
+    //hash the password
+    const hashPassworded = await this.hashPassword(updatePasswordDto.newPassword)
+    //update the password
+     await db.update(users)
+        .set({password: hashPassworded})
+        .where(eq(users.id, userId))
+
+    const { password: _password, ...safeUser } = user;
+    return {
+      success: true,
+      data: safeUser,
+      message: 'new password set successfully',
+    };
+   }
 }

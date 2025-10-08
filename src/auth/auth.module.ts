@@ -6,9 +6,10 @@ import { UserModule } from 'src/users/user.module';
 import { ConfigModule } from '@nestjs/config';
 import { env } from 'src/config/env.config';
 import { AuthGuard } from './auth.guard';
+import { EmailModule } from 'src/email/email.module';
 
 @Module({
-  imports: [
+  imports: [EmailModule,
     forwardRef(() => UserModule),
     JwtModule.register({
       secret: env.JWT_ACCESS_SECRET,

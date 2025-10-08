@@ -14,6 +14,8 @@ const envSchema = z.object({
   LOCAL_DB_URL: z.string().url().optional(),
   JWT_ACCESS_SECRET: z.string().min(1, 'JWT_ACCESS_SECRET is required'),
   JWT_REFRESH_SECRET: z.string().min(1, 'JWT_REFRESH_SECRET is required'),
+  EMAIL_USER: z.string(),
+  EMAIL_PASS: z.string(),
 
 });
 

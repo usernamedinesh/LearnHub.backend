@@ -17,10 +17,10 @@ export class UserController {
     return this.userService.findAll();
   }
 
-  // @UseGuards(AuthGuard)
+  @UseGuards(AuthGuard)
   @Get("me")
   async profile(@Request() req) {
-        const userId = req.user.userId
+    const userId = req.user.userId
     return await this.userService.profile(userId);
   }
 
@@ -35,7 +35,7 @@ export class UserController {
   // }
 
   @Get(':id')
-  async getUserById(@Param('id') id: string) {
+  async getUserById(@Param('id') id: number) {
     return this.userService.findOne(id);
   }
 }
