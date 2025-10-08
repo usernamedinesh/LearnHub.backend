@@ -1,7 +1,7 @@
 //handle db logics
 
 import {
-    BadRequestException,
+  BadRequestException,
   ConflictException,
   HttpException,
   Injectable,
@@ -11,7 +11,7 @@ import {
 } from '@nestjs/common';
 import { CreateUserDto, LoginUserDto } from './user.dto';
 import { db } from 'src/config/db';
-import { users } from '../schema/users';
+import { studentProfile, users } from '../schema/users';
 import { eq, or } from 'drizzle-orm';
 import * as bcrypt from 'bcryptjs';
 import { SafeUser, User, userRole } from 'src/schema/type';
@@ -29,15 +29,15 @@ type LoginReturn = {
 @Injectable()
 export class UserService {
 
-    constructor(
-        private  authService: AuthService
-    ) {}
+  constructor(
+    private authService: AuthService
+  ) { }
 
-    //Hash Password
-    async hashPassword(plainPassword: string):Promise<string> {
-        const saltRounds = 10;
-        return await bcrypt.hash(plainPassword, saltRounds);
-    }
+  //Hash Password
+  async hashPassword(plainPassword: string): Promise<string> {
+    const saltRounds = 10;
+    return await bcrypt.hash(plainPassword, saltRounds);
+  }
 
   async create(createUserDto: CreateUserDto) {
     const hashedPassword = await bcrypt.hash(createUserDto.password, 10);
@@ -71,19 +71,19 @@ export class UserService {
 
       // Don't return the password
 
-   // Use the existing tokenVersion from DB
-   const tokenVersion = newUser.tokenVersion ?? 0;
+      // Use the existing tokenVersion from DB
+      const tokenVersion = newUser.tokenVersion ?? 0;
 
-    const token = await this.authService.generateTokens({userId: newUser.id, role: newUser.role as userRole, tokenVersion})
-    //save refreshToken in db
-await db.update(users)
-  .set({ refreshToken: await bcrypt.hash(token.refreshToken, 10) })
-  .where(eq(users.id, newUser.id));
+      const token = await this.authService.generateTokens({ userId: newUser.id, role: newUser.role as userRole, tokenVersion })
+      //save refreshToken in db
+      await db.update(users)
+        .set({ refreshToken: await bcrypt.hash(token.refreshToken, 10) })
+        .where(eq(users.id, newUser.id));
 
 
-     const { password: _password, ...safeUser } = newUser as User;
+      const { password: _password, ...safeUser } = newUser as User;
 
-    return { safeUser: safeUser as SafeUser, accessToken: token.accessToken, refreshToken: token.refreshToken };
+      return { safeUser: safeUser as SafeUser, accessToken: token.accessToken, refreshToken: token.refreshToken };
 
 
     } catch (error) {
@@ -122,18 +122,33 @@ await db.update(users)
   }
 
   //ME
-  async profile(userId:string) {
+  async profile(userId: number) {
 
     const user = await db.query.users.findFirst({
-      where: eq(users.id, parseInt(userId, 10)),
-    });
+      where: eq(users.id, userId)
+    })
+    const studentDetails = await db.query.studentProfile.findFirst({
+      where: eq(studentProfile.userId, userId)
+    })
 
-    const { password: _password, ...safeUser } = user;
+    // const { password: _password, ...safeUser } = user;
     return {
       status: 'success',
-      data: safeUser,
+      data: {
+        id: user.id,
+        fullName: user.fullName,
+        email: user.email,
+        role: user.role,
+        profilePicture: user.profilePicture,
+        isVerified: user.isVerified,
+      },
+      studentData: {
+        learningGoals: studentDetails?.learningGoals || '',
+        preferences: studentDetails?.preferences || {},
+      },
     };
-   }
+
+  }
 
   //LOGIN
   async login(loginDto: LoginUserDto) {
@@ -155,14 +170,14 @@ await db.update(users)
       throw new UnauthorizedException('Invalid password');
     }
 
-   // Use the existing tokenVersion from DB
-   const tokenVersion = user.tokenVersion ?? 0;
+    // Use the existing tokenVersion from DB
+    const tokenVersion = user.tokenVersion ?? 0;
 
-    const token = await this.authService.generateTokens({userId: user.id, role: user.role as userRole, tokenVersion})
+    const token = await this.authService.generateTokens({ userId: user.id, role: user.role as userRole, tokenVersion })
     //save refreshToken in db
-await db.update(users)
-  .set({ refreshToken: await bcrypt.hash(token.refreshToken, 10) })
-  .where(eq(users.id, user.id));
+    await db.update(users)
+      .set({ refreshToken: await bcrypt.hash(token.refreshToken, 10) })
+      .where(eq(users.id, user.id));
 
     const { password: _password, ...safeUser } = user;
     return { safeUser, accessToken: token.accessToken, refreshToken: token.refreshToken };
@@ -185,8 +200,8 @@ await db.update(users)
     };
   }
 
-    //me password
-  async updateProfile( updatePasswordDto:updatePasswordDto, userId: number) {
+  //me password
+  async updateProfile(updatePasswordDto: updatePasswordDto, userId: number) {
 
     const user = await db.query.users.findFirst({
       where: eq(users.id, userId),
@@ -194,19 +209,19 @@ await db.update(users)
 
     if (!user) {
       throw new NotFoundException(`User with ID ${userId} not found`);
-     }
+    }
 
     //compare the password
-     const isPasswordMatched = await bcrypt.compare(updatePasswordDto.password, user.password)
+    const isPasswordMatched = await bcrypt.compare(updatePasswordDto.password, user.password)
     if (!isPasswordMatched) {
-        throw new  BadRequestException("Current password is incorrect");
+      throw new BadRequestException("Current password is incorrect");
     }
     //hash the password
     const hashPassworded = await this.hashPassword(updatePasswordDto.newPassword)
     //update the password
-     await db.update(users)
-        .set({password: hashPassworded})
-        .where(eq(users.id, userId))
+    await db.update(users)
+      .set({ password: hashPassworded })
+      .where(eq(users.id, userId))
 
     const { password: _password, ...safeUser } = user;
     return {
@@ -214,5 +229,5 @@ await db.update(users)
       data: safeUser,
       message: 'new password set successfully',
     };
-   }
+  }
 }
