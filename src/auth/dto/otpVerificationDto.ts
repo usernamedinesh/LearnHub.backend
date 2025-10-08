@@ -14,3 +14,8 @@ export class OtpVerificationDto {
   })
   method: 'email' | 'phone';
 }
+
+export class OtpVerify {
+  @IsString({message: "OTP is required"})
+  otp: string;
+}
