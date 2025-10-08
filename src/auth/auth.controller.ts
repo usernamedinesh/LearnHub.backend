@@ -4,7 +4,7 @@ import { SendOtpDto } from './dto/sendOtpDto';
 import { AuthService } from './auth.service';
 import { CreateUserDto, LoginUserDto } from 'src/users/user.dto';
 import { UserService } from 'src/users/user.service';
-import type { Response } from 'express';
+import type { Response ,  Request as EReq} from 'express';
 import { AuthGuard } from './auth.guard';
 import { RolesGuard } from './role.guard';
 import { Roles } from './roles.decorator';
@@ -13,8 +13,9 @@ import { updatePasswordDto } from 'src/users/DTO/user.dto';
 import { OtpVerificationDto, OtpVerify } from './dto/otpVerificationDto';
 import { InstructorRequestDto } from './dto/instructorDto';
 import * as request_interface from 'src/common/interface/request_interface';
-
-
+import { plainToInstance } from 'class-transformer';
+import { UserResponseDto } from 'src/common/dto/response.dto';
+import { cleanNullUndefined } from 'src/common/filters/null-undefined.filter';
 
 
 @Injectable()
@@ -34,6 +35,10 @@ export class AuthController {
   async createUsers(@Res({ passthrough: true }) res: Response, @Body() createUserDto: CreateUserDto) {
     // const user = await  this.userService.create(createUserDto);
     const { safeUser, accessToken, refreshToken } = await this.userService.create(createUserDto)
+
+    const formatedResponse = plainToInstance(UserResponseDto, safeUser, {
+        excludeExtraneousValues: true,
+    })
 
     //Set refreshToken as HTTP-only cookie
     res.cookie("refreshToken", refreshToken, {
@@ -56,6 +61,10 @@ export class AuthController {
   async loginUsers(@Res({ passthrough: true }) res: Response, @Body() loginUserDto: LoginUserDto) {
     const { safeUser, accessToken, refreshToken } = await this.userService.login(loginUserDto)
 
+    const formatedResponse = plainToInstance(UserResponseDto, safeUser, {
+        excludeExtraneousValues: true,
+    })
+
     //Set refreshToken as HTTP-only cookie
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
@@ -67,7 +76,7 @@ export class AuthController {
     return {
       status: 'success',
       message: 'user login successfully',
-      data: safeUser,
+      data: cleanNullUndefined(formatedResponse),
       accessToken: accessToken,
     };
   }
@@ -162,5 +171,16 @@ export class AuthController {
     const userId = req.user.userId;
     return await this.authService.requestInstructor(dto, userId)
   }
+
+    // Generate new accesstoken by refreshing in this route
+    @Post('refresh-token')
+    async refreshToken(@Req() req: EReq, @Res({ passthrough: true }) res: Response) {
+        const tokens = await this.authService.refreshToken(req, res);
+        return {
+            success: true,
+            accessToken: tokens.accessToken,
+            data: tokens.data,
+        };
+    }
 
 }

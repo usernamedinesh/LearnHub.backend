@@ -11,6 +11,7 @@ import { db } from 'src/config/db';
 import { eq } from 'drizzle-orm';
 import { instructorProfiles, otp, studentProfile, users } from 'src/schema';
 import { InstructorRequestDto } from './dto/instructorDto';
+import { ConfigService } from '@nestjs/config';
 
 export interface JwtPayload {
   userId: number;
@@ -31,23 +32,34 @@ export class AuthService {
     return { refreshToken, accessToken }
   }
 
-  @Post('refresh')
-  async refreshToken(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+  async refreshToken(req: Request, res: Response) {
     const token: string = req.cookies['refreshToken'] as string;
     if (!token) throw new UnauthorizedException();
 
     try {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-      const payload = await this.jwtService.verifyAsync(token);
+        const payload = await this.jwtService.verifyAsync<JwtPayload>(
+            token,
+            { secret: env.JWT_REFRESH_SECRET }
+        );
 
-      // Optionally check tokenVersion or stored refreshToken in DB
+        const user = await db.query.users.findFirst({
+            where: eq(users.id, payload.userId)
+         })
+
+       if (!user || user.tokenVersion !== payload.tokenVersion) {
+           throw new UnauthorizedException('Invalid refresh token');
+       }
+
+        // Rorate the tokenVersion(issue new tokenVersion)
+        user.tokenVersion += 1;
+        await db.update(users).set({
+          tokenVersion: user.tokenVersion
+        }).where(eq(users.id, user.id))
+
       const newTokens = this.generateTokens({
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
         userId: payload.userId,
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
         role: payload.role,
-        tokenVersion: 0
+        tokenVersion: user.tokenVersion
       });
 
       res.cookie('refreshToken', newTokens.refreshToken, {
@@ -59,6 +71,7 @@ export class AuthService {
 
       return {
         accessToken: newTokens.accessToken,
+        data: user,
       };
     } catch (err) {
       console.error("Error: ", err)
@@ -67,7 +80,7 @@ export class AuthService {
   }
 
   async otpVerifyCodeSend(otpVerifyCode: OtpVerificationDto, userId: number) {
-    // Check the email is exist in User schema 
+    // Check the email is exist in User schema
     // I have created an another Schema OTP for strong otp
     // So if the id is already exit in otp shcema then just update the otp
     // Then update send the OTP to the email
@@ -95,7 +108,7 @@ export class AuthService {
       }).where(eq(otp.userId, userId))
 
     } else {
-      // Create new OTP record 
+      // Create new OTP record
       await db.insert(otp).values({
         userId,
         otp: OTP,
@@ -118,7 +131,7 @@ export class AuthService {
     }
   }
 
-  // VERIFICATION OTP 
+  // VERIFICATION OTP
   // THEN MAKE STUDENT_TYPE
   async otpVerify(otpVerify: OtpVerify, userId: number): Promise<any>{
 
@@ -141,7 +154,7 @@ export class AuthService {
     }
     // 5. mark otp as used
     await db.update(otp).set({usedAt: now}).where(eq(otp.userId, userId));
-    
+
     // update the users
     await db.update(users)
     .set({
@@ -150,7 +163,7 @@ export class AuthService {
       role: userRole.Student
     }).where(eq(users.id, userId));
 
-    //create an student profile 
+    //create an student profile
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const newStudent = await db.insert(studentProfile).values({
       userId,
@@ -164,7 +177,7 @@ export class AuthService {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     data: newStudent,
   };
-    
+
   }
 
   async requestInstructor(dto: InstructorRequestDto, userId: number): Promise<any> {

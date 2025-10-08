@@ -9,6 +9,7 @@ import {
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
+import { cleanNullUndefined } from 'src/common/filters/null-undefined.filter';
 import { CreateUserDto, LoginUserDto } from './user.dto';
 import { db } from 'src/config/db';
 import { studentProfile, users } from '../schema/users';
@@ -18,12 +19,8 @@ import { SafeUser, User, userRole } from 'src/schema/type';
 import { AuthService } from 'src/auth/auth.service';
 import { omit } from 'zod/mini';
 import { updatePasswordDto } from './DTO/user.dto';
-
-type LoginReturn = {
-  safeUser: SafeUser;
-  accessToken: string;
-  refreshToken: string;
-};
+import { plainToInstance } from 'class-transformer';
+import { UserResponseDto } from 'src/common/dto/response.dto';
 
 
 @Injectable()
@@ -131,17 +128,15 @@ export class UserService {
       where: eq(studentProfile.userId, userId)
     })
 
+    const formatedResponse = plainToInstance(UserResponseDto, user, {
+        excludeExtraneousValues: true,
+    })
+
+
     // const { password: _password, ...safeUser } = user;
     return {
-      status: 'success',
-      data: {
-        id: user.id,
-        fullName: user.fullName,
-        email: user.email,
-        role: user.role,
-        profilePicture: user.profilePicture,
-        isVerified: user.isVerified,
-      },
+      success:true,
+      data: cleanNullUndefined(formatedResponse),
       studentData: {
         learningGoals: studentDetails?.learningGoals || '',
         preferences: studentDetails?.preferences || {},

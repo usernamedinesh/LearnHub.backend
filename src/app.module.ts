@@ -10,6 +10,7 @@ import { db } from './config/db';
 import { JwtModule } from '@nestjs/jwt';
 import { env } from './config/env.config';
 import { CourseModule } from './course/course.module';
+import { AdminModule } from './admin/admin.module';
 
 @Module({
   imports: [
@@ -28,6 +29,7 @@ import { CourseModule } from './course/course.module';
     UserModule,
     AuthModule,
     CourseModule,
+    AdminModule
   ],
   controllers: [],
   providers: [

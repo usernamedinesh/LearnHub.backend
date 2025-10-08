@@ -8,6 +8,7 @@ import { env } from './config/env.config';
 import { testDbConnection } from './config/db';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 import { AppModule } from './app.module';
+import cookieParser from 'cookie-parser';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
@@ -25,6 +26,9 @@ async function bootstrap() {
   );
 
   app.enableCors(corsConfig());
+
+
+  app.use(cookieParser());
 
   await setupShutdownHooks(app);
 
