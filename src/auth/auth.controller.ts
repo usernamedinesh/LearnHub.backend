@@ -11,6 +11,8 @@ import { Roles } from './roles.decorator';
 import { userRole } from 'src/schema/type';
 import { updatePasswordDto } from 'src/users/DTO/user.dto';
 import { OtpVerificationDto, OtpVerify } from './dto/otpVerificationDto';
+import { InstructorRequestDto } from './dto/instructorDto';
+import * as request_interface from 'src/common/interface/request_interface';
 
 
 
@@ -74,8 +76,8 @@ export class AuthController {
   @UseGuards(AuthGuard)
   // @Roles(userRole.Instructor) //TODO: Removes this
   @Get("me")
-  async profile(@Request() req: Request) {
-    const userId = (req as any).user.userId;
+  async profile(@Request() req: request_interface.RequestWithUser) {
+    const userId = req.user.userId;
     return await this.userService.profile(userId);
   }
 
@@ -112,10 +114,10 @@ export class AuthController {
   @UseGuards(AuthGuard)
   @Post("me/password")
   async updatePassword(
-    @Req() req: Request,
+    @Req() req: request_interface.RequestWithUser,
     @Body() updatePasswordDto: updatePasswordDto,
   ) {
-    const userId: number = (req as any).user.userId;
+    const userId: number = req.user.userId;
     return await this.userService.updateProfile(updatePasswordDto, userId);
   }
 
@@ -123,9 +125,9 @@ export class AuthController {
   @UseGuards(AuthGuard)
   @Post("/send-verification-code")
   async sendVerficationCode(
-    @Req() req: Request,
+    @Req() req: request_interface.RequestWithUser,
     @Body() otpVerifyCode: OtpVerificationDto) {
-    const userId: number = (req as any).user.userId;
+    const userId: number = req.user.userId;
     return await this.authService.otpVerifyCodeSend(otpVerifyCode, userId)
   }
 
@@ -133,10 +135,9 @@ export class AuthController {
   @UseGuards(AuthGuard)
   @Post("/otp-verify")
   async OtpVerfication(
-    @Req() req: Request,
+    @Req() req: request_interface.RequestWithUser,
     @Body() otpVerify: OtpVerify): Promise<any> {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
-    const userId: number = (req as any).user.userId;
+    const userId: number = req.user.userId;
     try {
       return await this.authService.otpVerify(otpVerify, userId);
     } catch (err: any) {
@@ -152,4 +153,14 @@ export class AuthController {
       };
     }
   }
+
+  //Instructor Requst
+  @UseGuards(AuthGuard)
+  @Post('/instructor-request')
+  async requestInstructor(@Req() req: request_interface.RequestWithUser,
+    @Body() dto: InstructorRequestDto): Promise<any> {
+    const userId = req.user.userId;
+    return await this.authService.requestInstructor(dto, userId)
+  }
+
 }

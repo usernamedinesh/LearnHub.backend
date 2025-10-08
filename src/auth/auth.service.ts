@@ -9,7 +9,8 @@ import type { Response, Request } from 'express';
 import { OtpVerificationDto, OtpVerify } from './dto/otpVerificationDto';
 import { db } from 'src/config/db';
 import { eq } from 'drizzle-orm';
-import { otp, studentProfile, users } from 'src/schema';
+import { instructorProfiles, otp, studentProfile, users } from 'src/schema';
+import { InstructorRequestDto } from './dto/instructorDto';
 
 export interface JwtPayload {
   userId: number;
@@ -164,6 +165,29 @@ export class AuthService {
     data: newStudent,
   };
     
+  }
+
+  async requestInstructor(dto: InstructorRequestDto, userId: number): Promise<any> {
+    const existingInstructor = await db.query.instructorProfiles.findFirst({
+      where: eq(instructorProfiles.userId, userId)
+    })
+
+    if (existingInstructor) {
+      throw new Error("You have already submitted an insturcotr request")
+    }
+
+    await db.insert(instructorProfiles).values({
+      userId,
+      expertise: dto.expertise,
+      socialLinks: dto.socialLinks,
+      paymentDetails: dto.paymentDetails,
+      // approved remains false by default
+  });
+
+    return {
+      success: true,
+      message: 'Instructor request submitted. Awaiting admin approval.',
+    };
   }
 
 }
