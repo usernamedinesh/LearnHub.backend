@@ -51,7 +51,7 @@ export class AuthGuard implements CanActivate {
     if (!user || !user.role) {
       throw new UnauthorizedException('User or role not found');
     }
-
+    console.log("USER ==>> ", user);
     const hasRole = requiredRoles.includes(user.role);
     if (!hasRole) {
       throw new UnauthorizedException('Unauthorized access');

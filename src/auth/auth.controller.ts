@@ -1,14 +1,16 @@
-import {Request, Body, Controller, Post, UseFilters, Injectable, HttpCode, HttpStatus, Res, UseGuards, Get } from '@nestjs/common';
+import {Request, Body, Controller, Post, UseFilters, Injectable, HttpCode, HttpStatus, Res, UseGuards, Get, Req } from '@nestjs/common';
 import { HttpExceptionFilter } from 'src/common/filters/http-exception.filter';
 import { SendOtpDto } from './dto/sendOtpDto';
 import { AuthService } from './auth.service';
-import { CreateUserDto, LoginUserDto } from 'src/users/user.dto';
+import { CreateUserDto, LoginUserDto} from 'src/users/user.dto';
 import { UserService } from 'src/users/user.service';
 import type {  Response } from 'express';
 import { AuthGuard } from './auth.guard';
 import { RolesGuard } from './role.guard';
 import { Roles } from './roles.decorator';
 import { userRole } from 'src/schema/type';
+import { updatePasswordDto } from 'src/users/DTO/user.dto';
+
 
 
 
@@ -46,19 +48,10 @@ export class AuthController {
    };
   }
 
-  @UseGuards(AuthGuard , RolesGuard)
-  @Roles(userRole.Instructor) //TODO: Removes this
-  @Get("me")
-    async profile(@Request() req: Request) {
-      const userId = (req as any).user.userId;
-      return await this.userService.profile(userId);
-    }
-
  @HttpCode(HttpStatus.OK)
   @Post('/login')
   async loginUsers(@Res({passthrough: true}) res: Response, @Body() loginUserDto: LoginUserDto) {
     const { safeUser, accessToken, refreshToken }  = await this.userService.login(loginUserDto)
-
 
     //Set refreshToken as HTTP-only cookie
     res.cookie("refreshToken", refreshToken, {
@@ -75,4 +68,55 @@ export class AuthController {
       accessToken: accessToken,
     };
   }
+
+  // @UseGuards(AuthGuard , RolesGuard)
+  @UseGuards(AuthGuard )
+  // @Roles(userRole.Instructor) //TODO: Removes this
+  @Get("me")
+    async profile(@Request() req: Request) {
+      const userId = (req as any).user.userId;
+      return await this.userService.profile(userId);
+    }
+
+  //Forgot-Password
+
+  /*
+   * Receive email from body
+   * check if emial exist
+   * Generate a secure  token (UUID,JWT, or random string)
+   * Save the resetPasswordToken with expireResetPasswordToken
+   * Send Email https://yourdomain.com/reset-password?token=abc123
+   */
+
+  //Reset-Password
+
+    /*
+     * Receive token and newPassword token
+     * find user by refreshToken from db
+     * hash check token is valid or expired
+     * hash new password
+     * update new password
+     * invalid the refreshToken
+    */
+
+    //me/password
+    /*
+     * using authGuard
+     * Receive newPassword, oldPassword
+     * compare current password
+     * hash the new password and save
+     */
+
+    // return await this.userService.profile(userId);
+    @UseGuards(AuthGuard)
+    @Post("me/password")
+    async updatePassword(
+      @Req() req: Request,
+      @Body() updatePasswordDto: updatePasswordDto,
+    ) {
+      const userId = (req as any).user.userId;
+      return await this.userService.updateProfile(updatePasswordDto, userId);
+    }
+
 }
+

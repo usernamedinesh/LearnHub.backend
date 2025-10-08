@@ -18,11 +18,11 @@ export class AuthService {
         private  jwtService: JwtService
     ) {}
 
-    async generateTokens(payload: JwtPayload): Promise<{ accessToken: string; refreshToken: string }> {
-        const accessToken = this.jwtService.sign(payload, {expiresIn: "15m"})
-        const refreshToken = this.jwtService.sign(payload, {expiresIn: "7d",secret: env.JWT_REFRESH_SECRET})
-        return {refreshToken, accessToken}
-    }
+async generateTokens(payload: JwtPayload): Promise<{ accessToken: string; refreshToken: string }> {
+    const accessToken = this.jwtService.sign(payload, {expiresIn: "15m"})
+    const refreshToken = this.jwtService.sign(payload, {expiresIn: "7d",secret: env.JWT_REFRESH_SECRET})
+    return {refreshToken, accessToken}
+}
 
 @Post('refresh')
 async refreshToken(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
@@ -52,5 +52,5 @@ async refreshToken(@Req() req: Request, @Res({ passthrough: true }) res: Respons
   } catch (err) {
     throw new UnauthorizedException('Invalid refresh token');
   }
-}
+ }
 }
