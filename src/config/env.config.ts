@@ -17,6 +17,16 @@ const envSchema = z.object({
   EMAIL_USER: z.string(),
   EMAIL_PASS: z.string(),
 
+  // ADMIN
+  FULL_NAME: z.string(),
+  EMAIL: z.string(),
+  PASSWORD: z.string(),
+  PHONENUMBER: z.string(),
+  ROLE: z.string(),
+  STATE: z.string(),
+  PIC: z.string(),
+  DOB: z.string(),
+
 });
 
 // 🔸 Define the TypeScript type from the schema
