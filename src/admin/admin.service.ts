@@ -7,7 +7,8 @@ import { success } from "zod";
 
 @Injectable()
 export class AdminService{
-    //To GET all pening Instructor
+
+    // GET all pending Instructor
     async getPendingInstructorReq(){
         const pending = await db.query.instructorProfiles.findMany({
             where: eq(instructorProfiles.approved, false),
@@ -15,11 +16,12 @@ export class AdminService{
 
         return {
             success: true,
+            message:"Fetching Pending Instrotor",
             data: pending,
         }
     }
 
-    //To Approved the INSTRUCTOR
+    // PATCH To Approved the INSTRUCTOR
      async approveInstructorRequest(instructorId: number, adminId: number) {
 
      //Validate if the instructorId & adminId is Valid
@@ -62,6 +64,7 @@ export class AdminService{
      };
    }
 
+    //GET ApprovedInstructor
     async getApprovedInstructor(adminId: number) {
 
      const admin = await db.query.users.findFirst({
