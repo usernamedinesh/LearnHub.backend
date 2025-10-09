@@ -66,11 +66,16 @@ export class LoginUserDto {
   @IsString({ message: 'Phone number must be a string' })
   phoneNumber?: string;
 
+
   @Validate(EmailOrPhoneRequired)
   dummyField: string; // Just to trigger the custom validator
 
   @IsString({ message: 'Password must be a string' })
   password: string;
+
+  @IsOptional()
+  @IsString({ message: 'Roles must be a string' })
+  Roles?: "admin" | "instructor";
 }
 
 export class UpdatePassword {

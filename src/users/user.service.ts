@@ -13,7 +13,7 @@ import { cleanNullUndefined } from 'src/common/filters/null-undefined.filter';
 import { CreateUserDto, LoginUserDto } from './user.dto';
 import { db } from 'src/config/db';
 import { studentProfile, users } from '../schema/users';
-import { eq, or } from 'drizzle-orm';
+import { and, eq, or } from 'drizzle-orm';
 import * as bcrypt from 'bcryptjs';
 import { SafeUser, User, userRole } from 'src/schema/type';
 import { AuthService } from 'src/auth/auth.service';
@@ -147,14 +147,23 @@ export class UserService {
 
   //LOGIN
   async login(loginDto: LoginUserDto) {
-    const { email, password, phoneNumber } = loginDto;
+    const { email, password, phoneNumber, Roles } = loginDto;
+
+    const conditions = [];
+    if (email || phoneNumber) {
+        conditions.push(
+        or(email ? eq(users.email, email): undefined,
+            phoneNumber ? eq(users.phoneNumber, phoneNumber) : undefined,
+          )
+       )
+    }
+    if (Roles) {
+        conditions.push(eq(users.role, Roles));
+     }
 
     const user = await db.query.users.findFirst({
-      where: or(
-        email ? eq(users.email, email) : undefined,
-        phoneNumber ? eq(users.phoneNumber, phoneNumber) : undefined,
-      ),
-    });
+            where: and(...conditions),
+        })
 
     if (!user) {
       throw new NotFoundException('User not found!');

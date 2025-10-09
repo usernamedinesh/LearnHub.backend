@@ -25,7 +25,7 @@ export class Course{
 
     //CREATE COURSE
     @UseGuards(AuthGuard, RolesGuard)
-    @Roles(userRole.Student)
+    @Roles(userRole.Instructor)
     @Post('new')
     createCourse(@Request() req: RequestWithUser, @Body() createCourse: CreateCourseDto) {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
