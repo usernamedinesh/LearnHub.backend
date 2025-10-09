@@ -1,6 +1,6 @@
 import { Request, Body, Controller, Post, UseFilters, Injectable, HttpCode, HttpStatus, Res, UseGuards, Get, Req } from '@nestjs/common';
 import { HttpExceptionFilter } from 'src/common/filters/http-exception.filter';
-import { SendOtpDto } from './dto/sendOtpDto';
+// import { SendOtpDto } from './dto/sendOtpDto';
 import { AuthService } from './auth.service';
 import { CreateUserDto, LoginUserDto } from 'src/users/user.dto';
 import { UserService } from 'src/users/user.service';

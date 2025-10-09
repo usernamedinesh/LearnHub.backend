@@ -1,6 +1,7 @@
-import { Controller, Get, Param, Patch } from "@nestjs/common";
+import { Controller, Get, Param, Patch, Request } from "@nestjs/common";
 import { AdminService } from "./admin.service";
 import { Admin } from "src/common/decorator/role.protected.decorator";
+import * as request_interface from 'src/common/interface/request_interface';
 
 @Controller('admin')
 @Admin()
@@ -12,9 +13,18 @@ export class AdminController {
         return await this.adminService.getPendingInstructorReq();
     }
 
-    @Patch('approve-instructor/:userId')
-    async approveInstructor(@Param('userId') userId: string) {
-        return this.adminService.approveInstructorRequest(Number(userId));
+    @Admin()
+    @Patch('approve-instructor/:instructorId')
+    async approveInstructor(@Param('instructorId') instructorId: string, @Request() req: request_interface.RequestWithUser) {
+        const adminId = req.user.userId
+        return await this.adminService.approveInstructorRequest(Number(instructorId), adminId);
+    }
+
+    @Admin()
+    @Get("instructor")
+    async getApprovedInstructor(@Request() req: request_interface.RequestWithUser) {
+        const adminId = req.user.userId
+        return await this.adminService.getApprovedInstructor(adminId);
     }
 
 }
