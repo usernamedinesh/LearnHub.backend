@@ -1,9 +1,10 @@
-import { Injectable, NotFoundException, UnauthorizedException} from "@nestjs/common";
-import { eq, and } from "drizzle-orm";
+import { BadRequestException, Injectable, NotFoundException, UnauthorizedException} from "@nestjs/common";
+import { count } from "console";
+import { eq, and, or, ilike, sql } from "drizzle-orm";
 import { db } from "src/config/db";
 import { instructorProfiles, users } from "src/schema";
 import { userRole } from "src/schema/type";
-import { success } from "zod";
+import { email, success } from "zod";
 
 @Injectable()
 export class AdminService{
@@ -12,84 +13,148 @@ export class AdminService{
     async getPendingInstructorReq(){
         const pending = await db.query.instructorProfiles.findMany({
             where: eq(instructorProfiles.approved, false),
+            with : {
+                user: true
+            },
         })
 
         return {
             success: true,
-            message:"Fetching Pending Instrotor",
+            message:"Fetched Pending Instrotor",
             data: pending,
         }
     }
 
-    // PATCH To Approved the INSTRUCTOR
-     async approveInstructorRequest(instructorId: number, adminId: number) {
+// PATCH To Approve the INSTRUCTOR
+async  approveInstructorRequest(instructorId: number, adminId: number) {
+  // 1️⃣ Validate instructor (and make sure not already approved)
+  const instructor = await db.query.instructorProfiles.findFirst({
+    where: eq(instructorProfiles.id, instructorId),
+  });
 
-     //Validate if the instructorId & adminId is Valid
-     const instructor = await db.query.instructorProfiles.findFirst({
-        where: and(
-            eq(instructorProfiles.id, instructorId),
-            eq(instructorProfiles.approved , false)
-        )
-     })
+  if (!instructor) {
+    throw new NotFoundException('Instructor not found.');
+  }
 
-     const admin = await db.query.users.findFirst({
-          where: and(
-              eq(users.id, adminId),
-              eq(users.role, userRole.Admin)
-          )
-      })
+  if (instructor.approved) {
+    throw new UnauthorizedException('Instructor is already approved!');
+  }
 
-     if (!instructor) {
-          throw new NotFoundException('Instructor not found or already approved');
-      }
+  // 2️⃣ Validate admin user
+  const admin = await db.query.users.findFirst({
+    where: and(eq(users.id, adminId), eq(users.role, userRole.Admin)),
+  });
 
-     if (!admin) {
-          throw new UnauthorizedException('Only Admin can perform this ');
-      }
+  if (!admin) {
+    throw new UnauthorizedException('Only admins can approve instructors.');
+  }
 
-    // 1. Approve instructor profile
-    await db.update(instructorProfiles).set({
+  // 3️⃣ Approve instructor profile
+  await db
+    .update(instructorProfiles)
+    .set({
       approved: true,
       approvedAt: new Date(),
-    }).where(eq(instructorProfiles.userId, instructorId));
+    })
+    .where(eq(instructorProfiles.id, instructorId));
 
-    // 2. Update user role
-    await db.update(users).set({
+  // 4️⃣ Update user role to Instructor
+  await db
+    .update(users)
+    .set({
       role: userRole.Instructor,
-    }).where(eq(users.id, instructorId));
+    })
+    .where(eq(users.id, instructor.userId));
 
-     return {
-        status: 'success',
-        message: 'Instructor approved successfully.',
-     };
-   }
+  // 5️⃣ Return response
+  return {
+    success: true,
+    message: 'Instructor approved successfully.',
+  };
+}
 
     //GET ApprovedInstructor
-    async getApprovedInstructor(adminId: number) {
+    async getApprovedInstructor(adminId: number, search: string, page: number, limit: number   ) {
 
-     const admin = await db.query.users.findFirst({
-          where: and(
-              eq(users.id, adminId),
-              eq(users.role, userRole.Admin)
-          )
-      })
+    try {
+        const admin = await db.query.users.findFirst({
+             where: and(
+                 eq(users.id, adminId),
+                 eq(users.role, userRole.Admin)
+             )
+         })
 
-     if (!admin) {
-          throw new UnauthorizedException('Only Admin can perform this ');
-      }
+        if (!admin) {
+             throw new UnauthorizedException('Only Admin can perform this ');
+         }
 
-        const ApprovedInstructor = await db.query.instructorProfiles.findMany({
-            where:  eq(instructorProfiles.approved, true),
-        })
+        const offset = (page - 1) * limit;
+        let conditions = [eq(users.role, "instructor")];
+        conditions.push(eq(instructorProfiles.approved, true));
 
-        if (!ApprovedInstructor || ApprovedInstructor.length === 0) {
-            throw new NotFoundException("No Instructor found!");
+        if (search) {
+            conditions.push(
+                or(
+                    ilike(users.fullName, `%${search}%`),
+                    ilike(users.email, `%${search}%`),
+                    ilike(users.phoneNumber, `%${search}%`),
+                    ilike(instructorProfiles.channelName, `%${search}%`),
+                ),
+            );
         }
+
+        const whereClause = and(...conditions);
+
+        //Fetched Data
+        const data = await db.select({
+            id: users.id,
+            fullName: users.fullName,
+            email: users.email,
+            phoneNumber: users.phoneNumber,
+            channelName: instructorProfiles.channelName,
+            totalEarned: instructorProfiles.totalEarned,
+            createdAt: users.createdAt,
+        })
+        .from(instructorProfiles)
+        .innerJoin(users, eq(users.id, instructorProfiles.userId))
+        .where(whereClause)
+        .limit(limit)
+        .offset(offset)
+        .orderBy(sql`${users.createdAt} DESC`);
+
+        //Count Total
+        const totalResult = await db.select({count: sql<number>`count(*)`})
+        .from(instructorProfiles)
+        .innerJoin(users, eq(users.id, instructorProfiles.userId))
+        .where(whereClause)
+
+        const total = Number(totalResult[0]?.count || 0);
+
+        // const ApprovedInstructor = await db.query.instructorProfiles.findMany({
+        //     where:  eq(instructorProfiles.approved, true),
+        //     with: {
+        //         user: true
+        //     }
+        // })
+
+        // if (!ApprovedInstructor || ApprovedInstructor.length === 0) {
+        //     throw new NotFoundException("No Instructor found!");
+        // }
 
         return {
             success: true,
             message:"Instructor fetched successfully",
-            data: ApprovedInstructor,
+            data: data,
+            pagination: {
+                total,
+                page,
+                limit,
+                totalPages: Math.ceil(total / limit)
+            }
         }
-    }
+    } catch (error) {
+        console.error("[InstructorService] Error fetching instructor: ", error);
+        throw new BadRequestException("Failed to fetch instructor");
+     }
+  }
 }

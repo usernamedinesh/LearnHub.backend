@@ -1,6 +1,6 @@
 {
-  "id": "2fb7e9ef-47ca-4420-8875-ace1273b8417",
-  "prevId": "ac835d38-050d-4fcb-aef5-450330846877",
+  "id": "5e86d573-9cf4-49ed-b686-179d4e76a4ea",
+  "prevId": "7206681b-5ba7-402a-8d46-be6a2ec8d8ac",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -20,14 +20,14 @@
           "primaryKey": false,
           "notNull": true
         },
-        "course_name": {
-          "name": "course_name",
+        "course_title": {
+          "name": "course_title",
           "type": "varchar(255)",
           "primaryKey": false,
           "notNull": true
         },
-        "course_title": {
-          "name": "course_title",
+        "slug": {
+          "name": "slug",
           "type": "varchar(255)",
           "primaryKey": false,
           "notNull": true
@@ -38,12 +38,59 @@
           "primaryKey": false,
           "notNull": true
         },
-        "isActive": {
-          "name": "isActive",
+        "status": {
+          "name": "status",
+          "type": "varchar(20)",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'upcoming'"
+        },
+        "is_active": {
+          "name": "is_active",
           "type": "boolean",
           "primaryKey": false,
           "notNull": true,
           "default": true
+        },
+        "is_pinned": {
+          "name": "is_pinned",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false,
+          "default": false
+        },
+        "priority": {
+          "name": "priority",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "default": 0
+        },
+        "category": {
+          "name": "category",
+          "type": "varchar(100)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "level": {
+          "name": "level",
+          "type": "varchar(50)",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'beginner'"
+        },
+        "language": {
+          "name": "language",
+          "type": "varchar(50)",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'Hindi'"
+        },
+        "duration": {
+          "name": "duration",
+          "type": "varchar(50)",
+          "primaryKey": false,
+          "notNull": false
         },
         "tags": {
           "name": "tags",
@@ -55,7 +102,8 @@
           "name": "price",
           "type": "numeric(10, 2)",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "default": "'0.00'"
         },
         "discount": {
           "name": "discount",
@@ -66,6 +114,43 @@
         "description": {
           "name": "description",
           "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "requirements": {
+          "name": "requirements",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "what_you_will_learn": {
+          "name": "what_you_will_learn",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "promo_video_url": {
+          "name": "promo_video_url",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "is_free": {
+          "name": "is_free",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false,
+          "default": false
+        },
+        "published_at": {
+          "name": "published_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "enrollment_deadline": {
+          "name": "enrollment_deadline",
+          "type": "timestamp",
           "primaryKey": false,
           "notNull": false
         },
@@ -420,6 +505,12 @@
           "primaryKey": false,
           "notNull": true
         },
+        "channel_name": {
+          "name": "channel_name",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        },
         "expertise": {
           "name": "expertise",
           "type": "varchar(255)[]",
@@ -432,27 +523,6 @@
           "primaryKey": false,
           "notNull": false,
           "default": "'{}'::jsonb"
-        },
-        "average_rating": {
-          "name": "average_rating",
-          "type": "numeric(3, 2)",
-          "primaryKey": false,
-          "notNull": false,
-          "default": "'0.00'"
-        },
-        "total_reviews": {
-          "name": "total_reviews",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false,
-          "default": 0
-        },
-        "total_students": {
-          "name": "total_students",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false,
-          "default": 0
         },
         "payment_details": {
           "name": "payment_details",

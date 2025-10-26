@@ -1,4 +1,4 @@
-import { Injectable, Post, Req, Res, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, Injectable, Post, Req, Res, UnauthorizedException } from '@nestjs/common';
 // import { SendOtpDto } from './dto/sendOtpDto';
 import { generateOtp, getOtpExpiry } from 'src/otp/otp.utils';
 import { EmailService } from 'src/email/email.service';
@@ -11,7 +11,6 @@ import { db } from 'src/config/db';
 import { eq } from 'drizzle-orm';
 import { instructorProfiles, otp, studentProfile, users } from 'src/schema';
 import { InstructorRequestDto } from './dto/instructorDto';
-import { ConfigService } from '@nestjs/config';
 
 export interface JwtPayload {
   userId: number;
@@ -189,8 +188,13 @@ export class AuthService {
       throw new Error("You have already submitted an insturcotr request")
     }
 
+    if (!dto.channelName || typeof dto.channelName !== 'string') {
+      throw new BadRequestException('channelName is required and must be a string');
+    }
+
     await db.insert(instructorProfiles).values({
       userId,
+      channelName: dto.channelName,
       expertise: dto.expertise,
       socialLinks: dto.socialLinks,
       paymentDetails: dto.paymentDetails,

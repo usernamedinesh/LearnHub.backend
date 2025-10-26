@@ -10,6 +10,10 @@ export class InstructorRequestDto {
   @IsNotEmpty()
   socialLinks: Record<string, string>;
 
+  @IsString()
+  @IsNotEmpty()
+  channelName: string[];
+
   @IsObject()
   @IsNotEmpty()
   paymentDetails: Record<string, any>;

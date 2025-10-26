@@ -71,7 +71,7 @@ export class AuthController {
     })
 
     return {
-      status: 'success',
+      success: true,
       message: 'user login successfully',
       data: cleanNullUndefined(formatedResponse),
       accessToken: accessToken,

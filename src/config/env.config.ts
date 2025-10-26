@@ -16,6 +16,7 @@ const envSchema = z.object({
   JWT_REFRESH_SECRET: z.string().min(1, 'JWT_REFRESH_SECRET is required'),
   EMAIL_USER: z.string(),
   EMAIL_PASS: z.string(),
+  CORS_ORIGIN: z.string(),
 
   // ADMIN
   FULL_NAME: z.string(),
