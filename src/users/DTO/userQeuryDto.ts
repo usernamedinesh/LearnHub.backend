@@ -18,5 +18,9 @@ export class GetUserQueryDto {
     @IsOptional()
     @IsString()
     type?: 'users' | 'students';
+
+    @IsOptional()
+    @IsString()
+    status?: 'active' | 'inactive';
 }
 

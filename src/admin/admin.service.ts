@@ -114,6 +114,7 @@ async  approveInstructorRequest(instructorId: number, adminId: number) {
             channelName: instructorProfiles.channelName,
             totalEarned: instructorProfiles.totalEarned,
             createdAt: users.createdAt,
+            isActive: users.isActive
         })
         .from(instructorProfiles)
         .innerJoin(users, eq(users.id, instructorProfiles.userId))
@@ -157,4 +158,56 @@ async  approveInstructorRequest(instructorId: number, adminId: number) {
         throw new BadRequestException("Failed to fetch instructor");
      }
   }
+
+    //make user inctive
+    async UserUpdateStatus(adminId: number,  status: string, userId: number) {
+        try {
+            if (!["active", "inactive"].includes(status)) {
+                throw new Error(`Invalid status. Must be "active" or "inactive"`);
+            }
+
+            //check id is vaid or not or no need
+            const user = await db.query.users.findFirst({
+                where: eq(users.id, userId),
+            });
+
+            if (!user){
+                throw new NotFoundException("Invalid userId");
+            }
+
+         await db
+              .update(users)
+              .set({ isActive: status === "active" ? true : false })
+              .where(eq(users.id, userId));
+
+        return { success: true, message: `User marked as ${status}` };
+
+        } catch (error) {
+           console.error("Error making user Inctive",error)
+           throw new BadRequestException("Failed to make user inactive");
+        }
+    }
+
+    //make user Active
+    async UserActive(adminId: number, userId: number) {
+        try {
+            //check id is vaid or not or no need
+            const user = await db.query.users.findFirst({
+                where: eq(users.id, userId),
+            });
+
+            if (!user){
+                throw new NotFoundException("Invalid userId");
+            }
+
+            await db
+                .update(users)
+                .set({isActive: true})
+                .where(eq(users.id, userId))
+
+        } catch (error) {
+           console.error("Error making user Inctive",error)
+           throw new BadRequestException("Failed to make user inactive");
+        }
+    }
 }

@@ -31,4 +31,16 @@ export class AdminController {
         return await this.adminService.getApprovedInstructor(adminId, search, page, limit );
     }
 
+    // Make user Inactive/Active
+    // PATCH /user/status?status=active&userId=42
+    @Admin()
+    @Patch("user/status")
+    async UpdateUserStatus(
+        @Query("status") status: string,
+        @Query("userId") userId: number,
+        @Request() req: request_interface.RequestWithUser) {
+        const adminId = req.user.userId;
+        return await this.adminService.UserUpdateStatus(adminId, status, userId);
+    }
+
 }

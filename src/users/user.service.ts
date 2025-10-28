@@ -97,15 +97,30 @@ async findAll(
   limit: number = 30,
   page: number = 1,
   type: userTypes = "users",
+  status?: string,
 ) {
+        console.log("STATUS******************", status);
   try {
     const skip = (page - 1) * limit;
 
     if (type === 'students') {
+      const condition = [];
+      if (search) {
+          condition.push(ilike(studentProfile.learningGoals,`%${search}%` ));
+       }
+
+        //NO NEED I GUESS
+        // if (status == "active") {
+        //      condition.push(eq(users.isActive, true));
+        //  }else if (status == "inactive") {
+        //      condition.push(eq(users.isActive, false));
+        // }
+
       const query = db
         .select() // select all columns
         .from(studentProfile)
-        .where(search ? ilike(studentProfile.learningGoals, `%${search}%`) : undefined);
+        .innerJoin(users, eq(users.id, studentProfile.userId))
+        .where(and(...condition));
 
       const total = (await query.execute()).length;
       const data = await query.limit(limit).offset(skip).execute();
@@ -123,24 +138,51 @@ async findAll(
       };
     }
 
+// users query
+const query = db
+  .select() // select all columns
+  .from(users)
+  .where(
+    and(
+      // Always filter by role
+      eq(users.role, userRole.User),
+
+      // Optional search filter
+      search
+        ? or(
+            ilike(users.fullName, `%${search}%`),
+            ilike(users.email, `%${search}%`),
+            ilike(users.phoneNumber, `%${search}%`)
+          )
+        : undefined,
+
+      // Optional status filter
+      status === 'active'
+        ? eq(users.isActive, true)
+        : status === 'inactive'
+        ? eq(users.isActive, false)
+        : undefined
+    )
+  );
+
     // users query
-    const query = db
-      .select() // select all columns
-      .from(users)
-      .where(
-        (search || true) // we will combine search and role filter
-          ? and(
-              eq(users.role, userRole.User ),
-              search
-                ? or(
-                    ilike(users.fullName, `%${search}%`),
-                    ilike(users.email, `%${search}%`),
-                    ilike(users.phoneNumber, `%${search}%`)
-                  )
-                : undefined
-            )
-          : undefined
-      );
+    // const query = db
+    //   .select() // select all columns
+    //   .from(users)
+    //   .where(
+    //     (search || true) // we will combine search and role filter
+    //       ? and(
+    //           eq(users.role, userRole.User ),
+    //           search
+    //             ? or(
+    //                 ilike(users.fullName, `%${search}%`),
+    //                 ilike(users.email, `%${search}%`),
+    //                 ilike(users.phoneNumber, `%${search}%`)
+    //               )
+    //             : undefined
+    //         )
+    //       : undefined
+    //   );
 
     const total = (await query.execute()).length;
     const data = await query.limit(limit).offset(skip).execute();

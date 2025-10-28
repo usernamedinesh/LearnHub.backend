@@ -17,8 +17,8 @@ export class UserController {
   async getAllUsers(
         @Query() query: GetUserQueryDto,
     ) {
-    const {search, limit, page, type} = query
-    return this.userService.findAll(search, limit, page, type);
+    const {search, limit, page, type, status} = query
+    return this.userService.findAll(search, limit, page, type, status);
   }
 
   @UseGuards(AuthGuard)
