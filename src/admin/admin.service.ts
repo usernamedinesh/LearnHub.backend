@@ -1,8 +1,8 @@
 import { BadRequestException, Injectable, NotFoundException, UnauthorizedException} from "@nestjs/common";
-import { count } from "console";
+import { count, error } from "console";
 import { eq, and, or, ilike, sql } from "drizzle-orm";
 import { db } from "src/config/db";
-import { instructorProfiles, users } from "src/schema";
+import { course, instructorProfiles, studentProfile, users } from "src/schema";
 import { userRole } from "src/schema/type";
 import { email, success } from "zod";
 
@@ -12,12 +12,16 @@ export class AdminService{
     // GET all pending Instructor
     async getPendingInstructorReq(){
         const pending = await db.query.instructorProfiles.findMany({
-            where: eq(instructorProfiles.approved, false),
+            where: eq(instructorProfiles.approvalStatus, "pending"),
             with : {
                 user: true
             },
         })
 
+        const pendings = await db.query.instructorProfiles.findMany()
+        console.log("PEING**********", pending);
+
+        console.log("PDING__________", pendings)
         return {
             success: true,
             message:"Fetched Pending Instrotor",
@@ -26,52 +30,82 @@ export class AdminService{
     }
 
 // PATCH To Approve the INSTRUCTOR
-async  approveInstructorRequest(instructorId: number, adminId: number) {
-  // 1️⃣ Validate instructor (and make sure not already approved)
-  const instructor = await db.query.instructorProfiles.findFirst({
-    where: eq(instructorProfiles.id, instructorId),
-  });
+    async  approveInstructorRequest(instructorId: number, adminId: number, status: 'accept' | 'reject') {
 
-  if (!instructor) {
-    throw new NotFoundException('Instructor not found.');
-  }
+      // 1️⃣ Validate instructor (and make sure not already approved)
+      const instructor = await db.query.instructorProfiles.findFirst({
+        where: eq(instructorProfiles.id, instructorId),
+      });
 
-  if (instructor.approved) {
-    throw new UnauthorizedException('Instructor is already approved!');
-  }
+      if (!instructor) {
+        throw new NotFoundException('Instructor not found.');
+      }
 
-  // 2️⃣ Validate admin user
-  const admin = await db.query.users.findFirst({
-    where: and(eq(users.id, adminId), eq(users.role, userRole.Admin)),
-  });
 
-  if (!admin) {
-    throw new UnauthorizedException('Only admins can approve instructors.');
-  }
+      // 2️⃣ Validate admin user
+      const admin = await db.query.users.findFirst({
+        where: and(eq(users.id, adminId), eq(users.role, userRole.Admin)),
+      });
 
-  // 3️⃣ Approve instructor profile
-  await db
-    .update(instructorProfiles)
-    .set({
-      approved: true,
-      approvedAt: new Date(),
-    })
-    .where(eq(instructorProfiles.id, instructorId));
+      if (!admin) {
+        throw new UnauthorizedException('Only admins can approve instructors.');
+      }
 
-  // 4️⃣ Update user role to Instructor
-  await db
-    .update(users)
-    .set({
-      role: userRole.Instructor,
-    })
-    .where(eq(users.id, instructor.userId));
+      // Check instructor is already approved
+        if (status === "accept") {
+             if (instructor.approvalStatus === "approved") {
+                return {
+                    success: true,
+                    message: "Instructor is already approved!"
+                }
+             }
 
-  // 5️⃣ Return response
-  return {
-    success: true,
-    message: 'Instructor approved successfully.',
-  };
-}
+      // update instructor profile
+      await db
+        .update(instructorProfiles)
+        .set({
+          approvalStatus: "approved",
+          approvedAt: new Date(),
+          approvedBy: adminId
+        })
+        .where(eq(instructorProfiles.id, instructorId));
+
+      // 4️⃣ Update user role to Instructor
+      await db
+        .update(users)
+        .set({
+          role: userRole.Instructor,
+        })
+        .where(eq(users.id, instructor.userId));
+
+        // 5️⃣ Return response
+        return {
+            success: true,
+            message: 'Instructor approved successfully.',
+         };
+       }
+
+       // REJECT
+       if (status === "reject") {
+
+            // update instructor profile
+            await db.update(instructorProfiles)
+            .set({
+                approvalStatus: "rejected",
+                approvedBy: null,
+                approvedAt: null,
+                rejectCount: +1
+            })
+            .where(eq(instructorProfiles.id, instructorId));
+
+           return {
+                success: true,
+                message: "Instructor rejected successfully."
+            };
+        }
+      // 4️⃣ Safety: invalid status
+      throw new BadRequestException('Invalid status value. Must be "accept" or "reject".');
+    }
 
     //GET ApprovedInstructor
     async getApprovedInstructor(adminId: number, search: string, page: number, limit: number   ) {
@@ -90,7 +124,7 @@ async  approveInstructorRequest(instructorId: number, adminId: number) {
 
         const offset = (page - 1) * limit;
         let conditions = [eq(users.role, "instructor")];
-        conditions.push(eq(instructorProfiles.approved, true));
+        conditions.push(eq(instructorProfiles.approvalStatus, "pending"));
 
         if (search) {
             conditions.push(
@@ -159,7 +193,7 @@ async  approveInstructorRequest(instructorId: number, adminId: number) {
      }
   }
 
-    //make user inctive
+    //make user inctive/inactive
     async UserUpdateStatus(adminId: number,  status: string, userId: number) {
         try {
             if (!["active", "inactive"].includes(status)) {
@@ -188,26 +222,31 @@ async  approveInstructorRequest(instructorId: number, adminId: number) {
         }
     }
 
-    //make user Active
-    async UserActive(adminId: number, userId: number) {
+    //DELTE USER PARMANENTLY
+    async DeleteUserParmanently(adminId: number, userId: number) {
         try {
-            //check id is vaid or not or no need
             const user = await db.query.users.findFirst({
-                where: eq(users.id, userId),
-            });
+                where: eq(users.id, userId)
+            })
 
-            if (!user){
-                throw new NotFoundException("Invalid userId");
+            if (!user) {
+               return new NotFoundException(`User with ID ${userId} Not Found`)
             }
 
-            await db
-                .update(users)
-                .set({isActive: true})
-                .where(eq(users.id, userId))
+            // 1.First:  Delete  instructorProfiles
+            await db.delete(instructorProfiles).where(eq(instructorProfiles.userId, userId));
 
-        } catch (error) {
+            // 2.Second: Delete  studentProfiles
+            await db.delete(studentProfile).where(eq(studentProfile.userId, userId));
+
+            // 3.Final:  Delete  Users
+            await db.delete(users).where(eq(users.id, userId));
+
+            return { success: true, message: `User with ID ${ userId } Deleted Parmanently`};
+        } catch(error) {
            console.error("Error making user Inctive",error)
-           throw new BadRequestException("Failed to make user inactive");
+           throw new BadRequestException("Failed Deleting User");
         }
     }
+
 }

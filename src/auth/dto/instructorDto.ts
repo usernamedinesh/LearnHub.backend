@@ -17,4 +17,7 @@ export class InstructorRequestDto {
   @IsObject()
   @IsNotEmpty()
   paymentDetails: Record<string, any>;
+
+  @IsString()
+  channelThumbnail?: string;
 }

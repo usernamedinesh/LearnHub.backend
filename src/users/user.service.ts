@@ -99,7 +99,6 @@ async findAll(
   type: userTypes = "users",
   status?: string,
 ) {
-        console.log("STATUS******************", status);
   try {
     const skip = (page - 1) * limit;
 
