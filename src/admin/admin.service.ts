@@ -1,10 +1,8 @@
 import { BadRequestException, Injectable, NotFoundException, UnauthorizedException} from "@nestjs/common";
-import { count, error } from "console";
 import { eq, and, or, ilike, sql } from "drizzle-orm";
 import { db } from "src/config/db";
 import { course, instructorProfiles, studentProfile, users } from "src/schema";
 import { userRole } from "src/schema/type";
-import { email, success } from "zod";
 
 @Injectable()
 export class AdminService{
@@ -18,10 +16,6 @@ export class AdminService{
             },
         })
 
-        const pendings = await db.query.instructorProfiles.findMany()
-        console.log("PEING**********", pending);
-
-        console.log("PDING__________", pendings)
         return {
             success: true,
             message:"Fetched Pending Instrotor",
@@ -124,7 +118,7 @@ export class AdminService{
 
         const offset = (page - 1) * limit;
         let conditions = [eq(users.role, "instructor")];
-        conditions.push(eq(instructorProfiles.approvalStatus, "pending"));
+        conditions.push(eq(instructorProfiles.approvalStatus, "approved"));
 
         if (search) {
             conditions.push(
