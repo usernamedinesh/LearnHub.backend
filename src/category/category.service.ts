@@ -1,9 +1,11 @@
-import { Injectable, InternalServerErrorException } from "@nestjs/common";
+import { Injectable, InternalServerErrorException, NotFoundException } from "@nestjs/common";
 import { CreateCategoryDto } from "./Dto/category.dto";
 import { db } from "src/config/db";
 import { categories } from "src/schema";
 import { CategoryFilterDto, columnMap } from "./Dto/findAllCategoryQueryDto";
-import { and, sql } from "drizzle-orm";
+import { eq, and, sql } from "drizzle-orm";
+import { success } from "zod";
+import { UpdateCategoryDto } from "./Dto/updateCategoryDto";
 
 @Injectable()
 export class CategoryService {
@@ -69,4 +71,72 @@ export class CategoryService {
              throw new InternalServerErrorException("Failed to fetch categories");
         }
     }
+
+    // Find One Course
+    async findOne( id: string ) {
+        try {
+
+        const [category] = await db
+            .select()
+            .from(categories)
+            .where(eq(categories.id, id))
+            .limit(1);
+
+        if( !category ) {
+            throw new NotFoundException(`Category with id ${id} not found`);
+        }
+
+        return {
+            success: true,
+            message: "find single course",
+            data: category,
+        }
+     } catch (error) {
+           console.error(error)
+           throw new InternalServerErrorException("Failed to fetch single category");
+      }
+   }
+
+    // UPDATE COURSE
+    async update(id: string, dto: UpdateCategoryDto) {
+        try {
+
+          const [updated] = await db
+                .update(categories)
+                .set(dto)
+                .where(eq(categories.id, id))
+                .returning();
+
+          if (!updated) {
+                throw new NotFoundException(`Category with id ${id} not found`);
+           }
+
+           return {success: true, message: "updated course Succussfully!"}
+
+          } catch (error) {
+              console.error(error)
+              throw new InternalServerErrorException("Failed to fetch single category");
+          }
+   }
+
+    // REMOVE COURSE
+    async remove( id: string ) {
+        try {
+
+          const [deleted] = await db
+               .delete(categories)
+               .where(eq(categories.id, id))
+               .returning();
+
+          if (!deleted) {
+                throw new NotFoundException(`Category with id ${id} not found`);
+           }
+
+           return {success: true, message: "remove course Succussfully!"}
+
+          } catch (error) {
+               console.error(error)
+               throw new InternalServerErrorException("Failed to delete course");
+          }
+      }
 }
