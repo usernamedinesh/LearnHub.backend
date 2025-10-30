@@ -1,14 +1,14 @@
-import { pgTable, serial, integer, timestamp} from "drizzle-orm/pg-core";
+import { pgTable, uuid, integer, timestamp} from "drizzle-orm/pg-core";
 import { studentProfile } from "./users";
 import { course } from "./course";
 
 //CART
 export const CartItems = pgTable(
     "cart_items",{
-        id: serial('id').primaryKey(),
+        id: uuid('id').defaultRandom().primaryKey(),
         studentId: integer('student_id').notNull().references(() => studentProfile.id,
             {onDelete: "cascade"}),
-        courseId: integer("course_id").notNull().references(()=> course.id, {
+        courseId: uuid("course_id").notNull().references(()=> course.id, {
             onDelete: "cascade"
         }),
         addedAt: timestamp("added_at").defaultNow()
@@ -18,11 +18,11 @@ export const CartItems = pgTable(
 //WISHLIST
 export const Wishlist = pgTable(
     "wishlist",{
-        id: serial('id').primaryKey(),
+        id: uuid('id').defaultRandom().primaryKey(),
         studentId: integer('student_id').notNull().references(() => studentProfile.id, {
             onDelete: "cascade"
         }),
-        courseId: integer("course_id").notNull().references(() => course.id, {
+        courseId: uuid("course_id").notNull().references(() => course.id, {
             onDelete: "cascade"
         }),
         addedAt: timestamp("added_at").defaultNow()

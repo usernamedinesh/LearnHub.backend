@@ -1,1 +1,0 @@
-ALTER TABLE "instructor_profiles" ADD COLUMN "reject_count" integer DEFAULT 0 NOT NULL;

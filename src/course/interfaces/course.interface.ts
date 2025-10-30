@@ -10,3 +10,9 @@ export interface ICourses {
     createdAt: Date;
     updatedAt: Date;
 }
+
+export interface courseFilter {
+    categoryId?: string;
+    level?: 'beginner' | 'intermediate' | 'advanced' | 'all';
+      // You could add more here, like `isFree: boolean`
+}

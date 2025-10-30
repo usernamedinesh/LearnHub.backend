@@ -29,7 +29,7 @@ export class CategoryService {
     async findAll(filter: CategoryFilterDto){
         try {
 
-            const {search, page = 1, limit = 10, slug, sortBy = 'createdAt', sortOrder= 'asc'} = filter;
+            const {search, page = 1, limit = 50, slug, sortBy = 'createdAt', sortOrder= 'asc'} = filter;
             const whereConditions: any[] = [];
             if (search) {
                 whereConditions.push(

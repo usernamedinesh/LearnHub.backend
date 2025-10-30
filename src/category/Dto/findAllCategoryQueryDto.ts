@@ -13,7 +13,7 @@ export class CategoryFilterDto {
     @IsOptional()
     @IsNumber()
     @Min(1)
-    limit?: number = 10;
+    limit?: number = 100;
 
     @IsOptional()
     @IsString()

@@ -1,12 +1,11 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { Course } from "src/schema/type";
-import { ICourses } from "./interfaces/course.interface";
+import { courseFilter, ICourses } from "./interfaces/course.interface";
 import { CreateCourseDto } from "./dto/create-course.dto";
 import { db } from "src/config/db";
 import { course, instructorProfiles } from "src/schema";
-import { eq } from "drizzle-orm";
+import { eq, and, sql } from "drizzle-orm";
 import slugify from "slugify";
-import { id } from "zod/locales";
 
 @Injectable()
 export class CourseService{
@@ -130,7 +129,7 @@ export class CourseService{
     // Get single courses
 
     // Delete course
-    async delete_course (courseId: number) {
+    async delete_course (courseId: string) {
         const validCourseId = await db.query.course.findFirst({
             where: eq(course.id, courseId),
         })
@@ -147,4 +146,38 @@ export class CourseService{
        };
     }
     // Update course
+
+    //Search Course
+    async searchCourses(searchText: string | null, filters: courseFilter) {
+      const conditions = [eq(course.isActive, true)];
+
+      if (searchText) {
+        // conditions.push(
+        //   sql`courses.search_text_vector @@ websearch_to_tsquery('english', ${searchText})`
+        // );
+         conditions.push(
+              sql`courses.search_vector @@ websearch_to_tsquery('english', ${searchText})`
+          );
+      }
+
+      if (filters.categoryId) {
+        conditions.push(eq(course.categoryId, filters.categoryId));
+      }
+
+      if (filters.level && filters.level !== 'all') {
+        conditions.push(eq(course.level, filters.level));
+      }
+
+      const searchResult = await db
+        .select()
+        .from(course)
+        .where(and(...conditions))
+        .limit(50);
+
+      return {
+        success: true,
+        message: "Course Search Successfully!",
+        data: searchResult,
+      };
+    }
 }

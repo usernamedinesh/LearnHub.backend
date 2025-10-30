@@ -5,3 +5,10 @@ export const approvedInstructorStatusEnum = pgEnum('approval_status', [
   'approved',
   'rejected',
 ]);
+
+export const courseLevelEnum = pgEnum('course_level', [
+  'beginner',
+  'intermediate',
+  'advanced',
+  'all',
+])

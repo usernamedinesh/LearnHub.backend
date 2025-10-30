@@ -10,6 +10,7 @@ import {
   IsDateString,
   Min,
   MaxLength,
+  IsArray,
 } from 'class-validator';
 
 export enum CourseStatus {
@@ -63,7 +64,8 @@ export class CreateCourseDto {
 
   @IsOptional()
   @IsString()
-  tags?: string; // can be comma-separated string (e.g., "ts,js,react")
+  @IsArray()
+  tags?: []; // can be comma-separated string (e.g., "ts,js,react")
 
   @IsOptional()
   @IsNumber({}, { message: 'Price must be a number' })

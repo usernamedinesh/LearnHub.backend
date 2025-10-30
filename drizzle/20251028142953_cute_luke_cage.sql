@@ -1,1 +1,0 @@
-ALTER TABLE "instructor_profiles" ADD COLUMN "channel_thumbnail" varchar(255);

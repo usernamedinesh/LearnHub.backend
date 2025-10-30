@@ -58,4 +58,11 @@ export class AdminController {
         return await this.adminService.DeleteUserParmanently(adminId, userId);
     }
 
+    //all user count by admin
+    @Admin()
+    @Get("user/get")
+    async GetAllUsersCount() {
+        return await this.adminService.allusersCount();
+    }
+
 }

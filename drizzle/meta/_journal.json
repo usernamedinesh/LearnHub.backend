@@ -5,36 +5,8 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1760000371840,
-      "tag": "20251009085931_unique_king_cobra",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "7",
-      "when": 1760001429737,
-      "tag": "20251009091709_organic_luckman",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1761659173793,
-      "tag": "20251028134613_skinny_stryfe",
-      "breakpoints": true
-    },
-    {
-      "idx": 3,
-      "version": "7",
-      "when": 1761661793867,
-      "tag": "20251028142953_cute_luke_cage",
-      "breakpoints": true
-    },
-    {
-      "idx": 4,
-      "version": "7",
-      "when": 1761665743059,
-      "tag": "20251028153543_flawless_bill_hollister",
+      "when": 1761724556446,
+      "tag": "20251029075556_left_zaran",
       "breakpoints": true
     }
   ]

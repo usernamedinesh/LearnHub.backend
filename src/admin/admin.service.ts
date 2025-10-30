@@ -1,7 +1,7 @@
 import { BadRequestException, Injectable, NotFoundException, UnauthorizedException} from "@nestjs/common";
 import { eq, and, or, ilike, sql } from "drizzle-orm";
 import { db } from "src/config/db";
-import { course, instructorProfiles, studentProfile, users } from "src/schema";
+import { instructorProfiles, studentProfile, users } from "src/schema";
 import { userRole } from "src/schema/type";
 
 @Injectable()
@@ -243,4 +243,40 @@ export class AdminService{
         }
     }
 
+    async allusersCount() {
+
+        // Count All Users
+        const [{ count: totalUsers }] = await db
+              .select({count: sql<number>`count(${users.id})`})
+              .from(users);
+
+        // Count All Admins
+        const [{count: totalAdmins}] = await db
+              .select({count: sql<number>`count(${users.id})` })
+              .from(users)
+              .where(eq(users.role, userRole.Admin));
+
+        // Count all instructors (users who have instructorProfiles)
+        const [{ count: totalInstructors }] = await db
+          .select({ count: sql<number>`count(${instructorProfiles.id})` })
+          .from(instructorProfiles);
+
+        // Count all students (users who have studentProfile)
+        const [{ count: totalStudents }] = await db
+          .select({ count: sql<number>`count(${studentProfile.id})` })
+          .from(studentProfile);
+
+        return {
+          success: true,
+          message: 'User counts fetched successfully',
+          data: {
+            totalUsers: Number(totalUsers),
+            totalAdmins: Number(totalAdmins),
+            totalInstructors: Number(totalInstructors),
+            totalStudents: Number(totalStudents),
+          },
+        };
+    }
+
 }
+

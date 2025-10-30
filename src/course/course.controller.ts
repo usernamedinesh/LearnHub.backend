@@ -8,6 +8,8 @@ import { Roles } from "src/auth/roles.decorator";
 import { userRole } from "src/schema/type";
 import type { RequestWithUser } from "src/common/interface/request_interface";
 import { Admin } from "src/common/decorator/role.protected.decorator";
+import { CreateCategoryDto } from "src/category/Dto/category.dto";
+import { courseFilter } from "./interfaces/course.interface";
 
 @Controller('course')
 export class Course{
@@ -45,12 +47,18 @@ export class Course{
     //DELETE post here
     @Admin()
     @Delete('del/:id')
-    deleteCourse( @Param('id') id: number, @Request() req: RequestWithUser) {
+    deleteCourse( @Param('id') id: string, @Request() req: RequestWithUser) {
         return this.courseService.delete_course(id)
     }
 
     @Put('update')
     updateCourse(){
         return "UPDATE COURSE HERE !"
+    }
+
+    @Get('search')
+    searchCourse(){
+        let filter: courseFilter
+        return this.courseService.searchCourses("courses", filter);
     }
 }
