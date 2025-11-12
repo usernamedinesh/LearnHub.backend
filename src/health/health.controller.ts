@@ -4,8 +4,6 @@ import { ApiTags } from '@nestjs/swagger';
 @ApiTags('Health')
 @Controller('health')
 export class HealthController {
-  private readonly startTime = Date.now();
-
   @Get()
   checkHealth() {
     return {
