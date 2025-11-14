@@ -1,4 +1,4 @@
-import { IsArray, IsNotEmpty, IsObject, IsString} from 'class-validator';
+import { IsArray, IsNotEmpty, IsObject, IsOptional, IsString} from 'class-validator';
 
 export class InstructorRequestDto {
   @IsArray()
@@ -18,6 +18,7 @@ export class InstructorRequestDto {
   @IsNotEmpty()
   paymentDetails: Record<string, any>;
 
+  @IsOptional()
   @IsString()
   channelThumbnail?: string;
 }

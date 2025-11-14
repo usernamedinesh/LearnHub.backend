@@ -20,18 +20,16 @@ export class AuthGuard implements CanActivate {
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest<Request>();
-
+     console.log("Authenticating....");
     // 🔐 Auth logic
     const token = this.extractTokenFromHeader(request);
     if (!token) {
       throw new UnauthorizedException('Missing token');
     }
-
     try {
       const payload = await this.jwtService.verifyAsync(token, {
         secret: env.JWT_ACCESS_SECRET,
       });
-
       request['user'] = payload;
     } catch {
       throw new UnauthorizedException('Invalid token');
@@ -51,12 +49,19 @@ export class AuthGuard implements CanActivate {
     if (!user || !user.role) {
       throw new UnauthorizedException('User or role not found');
     }
-    console.log("USER ==>> ", user);
+    const users = {
+            id: user.userId,
+            role: user.role,
+            tokenVersion: user.tokenVersion
+        };
+
+    console.log("USERS ==>> ", users);
     const hasRole = requiredRoles.includes(user.role);
     if (!hasRole) {
       throw new UnauthorizedException('Unauthorized access');
     }
 
+    console.log("Authenticated Passed!");
     return true;
   }
 
