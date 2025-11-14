@@ -1,0 +1,28 @@
+<< //\\// course.txt \\//\\ >>>
+
+// FROM URL<=><=><=><=><=>
+
+1. status : [upcomming, ongoing, completed]
+2. level : [beginner, intermediate, advanced]
+3. courseTitle ..done
+5. courseThumbnail ..done(backend not implemented)
+6. category? ::: id("by default backend"); ..done
+7. language?
+8. duration?
+10. tags? [] ..done
+11. price ::: string ..done
+12. discount? ::: number
+13. description? ::: string ..done
+14. requirements? ::: string
+15. whatYouWillLearn? ::: string
+16. promoVideoUrl? ::: string
+17. isFree ::: boolean
+18. publishedAt? ::: string
+19. enrollmentDeadline? ::: string
+
+|_//\\_//\\_//\\_//\\_//\\_//\\_//\\_//\\_//\\_//\\_//\\_//\\_/\\_//\\_//\\_|
+pinned: boolean("is_pinned").default(false),
+priority: integer("priority").default(0),
+
+isNew: boolean('is_new').default(true).notNull(),//TODO: how to make it false
+isPopular: boolean('is_popular').default(false).notNull(),

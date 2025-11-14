@@ -12,12 +12,14 @@ import {
   MaxLength,
   IsArray,
 } from 'class-validator';
+import { Type, Transform } from 'class-transformer';
 
-export enum CourseStatus {
-  UPCOMING = 'upcoming',
-  ONGOING = 'ongoing',
-  COMPLETED = 'completed',
-}
+// export enum CourseStatus {
+//   UPCOMING = 'upcoming',
+//   ONGOING = 'ongoing',
+//   COMPLETED = 'completed',
+//   DRAFT = 'draft',
+// }
 
 export enum CourseLevel {
   BEGINNER = 'beginner',
@@ -30,29 +32,22 @@ export class CreateCourseDto {
   @IsString()
   courseTitle: string;
 
-  @IsOptional()
-  @IsString({ message: 'Slug must be a string' })
-  slug?: string;
+  // @IsOptional()
+  // @IsString({ message: 'Slug must be a string' })
+  // slug?: string;
 
-  @IsNotEmpty({ message: 'Course thumbnail is required' })
+  @IsOptional()
   @IsString()
   courseThumbnail: string;
 
-  @IsOptional()
-  @IsEnum(CourseStatus, { message: 'Invalid course status' })
-  status?: CourseStatus;
+  // @IsOptional()
+  // @IsEnum(CourseStatus, { message: 'Invalid course status' })
+  // status: CourseStatus;
 
-  @IsOptional()
-  @IsBoolean()
-  isActive?: boolean;
-
-  @IsOptional()
-  @IsString()
-  category?: string;
 
   @IsOptional()
   @IsEnum(CourseLevel, { message: 'Level must be beginner, intermediate, or advanced' })
-  level?: CourseLevel;
+  level: CourseLevel;
 
   @IsOptional()
   @IsString()
@@ -63,12 +58,11 @@ export class CreateCourseDto {
   duration?: string;
 
   @IsOptional()
-  @IsString()
   @IsArray()
-  tags?: []; // can be comma-separated string (e.g., "ts,js,react")
+  @Transform(({ value }) => (typeof value === 'string' ? value.split(',') : value))
+  tags?: string[];
 
   @IsOptional()
-  @IsNumber({}, { message: 'Price must be a number' })
   price?: string;
 
   @IsOptional()
@@ -94,8 +88,11 @@ export class CreateCourseDto {
   promoVideoUrl?: string;
 
   @IsOptional()
-  @IsBoolean()
-  isFree?: boolean;
+  categoryId?: string | number;
+
+  @IsOptional()
+  @IsString()
+  isFree?: string;
 
   @IsOptional()
   @IsDateString({}, { message: 'Published date must be a valid ISO date string' })
