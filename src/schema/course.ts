@@ -19,48 +19,51 @@ import { categories } from './category';
 export const course = pgTable('courses', {
   id: uuid('id').defaultRandom().primaryKey(),
 
+  // --- Course Info ---
+  courseTitle: varchar('course_title', { length: 255 }).notNull(),
+  slug: varchar('slug', { length: 255 }).notNull().unique(), // auto-generated from title
+  description: text('description'),
+  courseThumbnail: varchar('course_thumbnail', { length: 255 }).notNull(),
+  promoVideoUrl: varchar('promo_video_url', { length: 255 }),
+  status: varchar('status', { length: 20 })
+    .$type<'draft' | 'upcoming' | 'ongoing' | 'completed'>()
+    .default('upcoming')
+    .notNull(),
+  level: courseLevelEnum('level').default('all'),
+  language: varchar('language', { length: 50 }).default('Hindi'),
+  duration: varchar('duration', { length: 50 }),
+  requirements: text('requirements'),
+  whatYouWillLearn: text('what_you_will_learn'),
+  isActive: boolean('is_active').default(false).notNull(),
+
+  // --- Pricing ---
+  price: numeric('price', { precision: 10, scale: 2 }).default('0.00'),
+  discount: integer('discount'),
+  isFree: boolean('is_free').default(false),
+
+  // --- Visibility & Publishing ---
+  publishedAt: timestamp('published_at'),
+  enrollmentDeadline: timestamp('enrollment_deadline'),
+
+  // --- Admin Fields ---
+  // popular > 1000 enrollment
+  // isNew > created after 7 days
+  isNew: boolean('is_new').default(true).notNull(),//TODO: how to make it false
+  isPopular: boolean('is_popular').default(false).notNull(),
+  pinned: boolean("is_pinned").default(false),
+  priority: integer("priority").default(0),
+
+  // --- Meta ---
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+
   // foregin key to the user who created/instructor the Course
   instructorId: integer('instructor_id')
     .notNull()
     .references(() => instructorProfiles.id, {onDelete: 'cascade'}),
 
-  courseTitle: varchar('course_title', { length: 255 }).notNull(),
-  slug: varchar('slug', { length: 255 }).notNull().unique(),
-
-  courseThumbnail: varchar('course_thumbnail', { length: 255 }).notNull(),
-  promoVideoUrl: varchar('promo_video_url', { length: 255 }),
-
-  status: varchar('status', { length: 20 })
-    .$type<'upcoming' | 'ongoing' | 'completed'>()
-    .default('upcoming')
-    .notNull(),
-
-  isActive: boolean('is_active').default(true).notNull(),
-  isNew: boolean('is_new').default(true).notNull(),//TODO: how to make it false
-  isPopular: boolean('is_popular').default(false).notNull(),
-  isFree: boolean('is_free').default(false),
-  pinned: boolean("is_pinned").default(false),
-  priority: integer("priority").default(0),
-
-  level: courseLevelEnum('level').default('all'),
-  language: varchar('language', { length: 50 }).default('Hindi'),
-  duration: varchar('duration', { length: 50 }),
-
+  // Category & Tags
   tags: text('tags').array(), //TODO: updated to array
-  price: numeric('price', { precision: 10, scale: 2 }).default('0.00'),
-  discount: integer('discount'),
-
-  description: text('description'),
-  requirements: text('requirements'),
-  whatYouWillLearn: text('what_you_will_learn'),
-
-  publishedAt: timestamp('published_at'),
-  enrollmentDeadline: timestamp('enrollment_deadline'),
-
-  createdAt: timestamp('created_at').defaultNow().notNull(),
-  updatedAt: timestamp('updated_at').defaultNow().notNull(),
-
-  // Foreign key to a category
   categoryId: uuid('category_id').references(() => categories.id, {
       onDelete: 'set null', // Course stays, but category is removed
   }),

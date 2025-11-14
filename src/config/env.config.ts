@@ -18,6 +18,11 @@ const envSchema = z.object({
   EMAIL_PASS: z.string(),
   CORS_ORIGIN: z.string(),
 
+  // Cloudinary secrets
+  CLOUDINARY_CLOUD_NAME: z.string(),
+  CLOUDINARY_API_KEY: z.string(),
+  CLOUDINARY_API_SECRET: z.string(),
+
   // ADMIN
   FULL_NAME: z.string(),
   EMAIL: z.string(),
