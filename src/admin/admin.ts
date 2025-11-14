@@ -13,10 +13,10 @@ export class AdminSeederService implements OnModuleInit {
         const IsAdmin = await db.query.users.findFirst({
             where: eq(users.email , env.EMAIL)
         })
-        console.log("ADMIN", IsAdmin);
+        // console.log("ADMIN", IsAdmin);
         if (IsAdmin) {
 
-            await db.delete(course);
+            // await db.delete(course);
             console.log("xxxxxxxxxxxxxxx Admin Already Existxxxxxxxxxxxxxxx");
             return;
 

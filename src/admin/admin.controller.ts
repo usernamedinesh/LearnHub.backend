@@ -3,7 +3,6 @@ import { AdminService } from "./admin.service";
 import { Admin } from "src/common/decorator/role.protected.decorator";
 import * as request_interface from 'src/common/interface/request_interface';
 import { GetInstructorQueryDto } from "./dto/instructorQuery";
-import { query } from "express";
 import { ApproavedInstructorStatusQuery } from "./dto/approvedStatusDto";
 
 @Controller('admin')

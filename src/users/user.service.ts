@@ -12,7 +12,7 @@ import {
 import { cleanNullUndefined } from 'src/common/filters/null-undefined.filter';
 import { CreateUserDto, LoginUserDto } from './user.dto';
 import { db } from 'src/config/db';
-import { studentProfile, users } from '../schema/users';
+import { instructorProfiles, studentProfile, users } from '../schema/users';
 import { and, eq, or, ilike } from 'drizzle-orm';
 import * as bcrypt from 'bcryptjs';
 import { SafeUser, User, userRole } from 'src/schema/type';
@@ -212,25 +212,38 @@ const query = db
     const user = await db.query.users.findFirst({
       where: eq(users.id, userId)
     })
-    const studentDetails = await db.query.studentProfile.findFirst({
-      where: eq(studentProfile.userId, userId)
-    })
+
+    const [studentDetails, instructorDetails] = await Promise.all([
+        db.query.studentProfile.findFirst({
+          where: eq(studentProfile.userId, userId),
+        }),
+        db.query.instructorProfiles.findFirst({
+          where: eq(instructorProfiles.userId, userId),
+        }),
+      ]);
 
     const formatedResponse = plainToInstance(UserResponseDto, user, {
         excludeExtraneousValues: true,
     })
 
+    const finalResponse = {
+        success: true,
+        data: cleanNullUndefined(formatedResponse), // Base User Data
 
-    // const { password: _password, ...safeUser } = user;
-    return {
-      success:true,
-      data: cleanNullUndefined(formatedResponse),
-      studentData: {
-        learningGoals: studentDetails?.learningGoals || '',
-        preferences: studentDetails?.preferences || {},
-      },
-    };
+        studentData: studentDetails
+          ? {
+              learningGoals: studentDetails.learningGoals || '',
+              preferences: studentDetails.preferences || {},
+            }
+          : null,
 
+        instructorData: instructorDetails
+          ? {
+              id: instructorDetails.id,
+            }
+          : null,
+      };
+      return finalResponse;
   }
 
   //LOGIN
