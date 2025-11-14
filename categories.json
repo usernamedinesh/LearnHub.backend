@@ -1,0 +1,198 @@
+[
+  {
+    "name": "Blockchain",
+    "slug": "blockchain",
+    "description": "Understand cryptocurrency, smart contracts, and decentralized apps."
+  },
+  {
+    "name": "Digital Marketing",
+    "slug": "digital-marketing",
+    "description": "Grow your business with SEO, content, and social media marketing."
+  },
+  {
+    "name": "SEO",
+    "slug": "seo",
+    "description": "Drive organic traffic by ranking higher on search engines."
+  },
+  {
+    "name": "Social Media Marketing",
+    "slug": "social-media-marketing",
+    "description": "Build a brand and audience on platforms like Instagram, TikTok, and X."
+  },
+  {
+    "name": "Content Marketing",
+    "slug": "content-marketing",
+    "description": "Attract and retain customers with valuable blogs, videos, and posts."
+  },
+  {
+    "name": "Business Analytics",
+    "slug": "business-analytics",
+    "description": "Use data to make smarter business decisions and strategies."
+  },
+  {
+    "name": "Finance",
+    "slug": "finance",
+    "description": "Understand corporate finance, financial modeling, and accounting."
+  },
+  {
+    "name": "Investing & Trading",
+    "slug": "investing-and-trading",
+    "description": "Learn to navigate stock markets, forex, and cryptocurrencies."
+  },
+  {
+    "name": "Entrepreneurship",
+    "slug": "entrepreneurship",
+    "description": "Learn how to start, manage, and grow your own successful business."
+  },
+  {
+    "name": "Project Management",
+    "slug": "project-management",
+    "description": "Master Agile, Scrum, and PMP to deliver projects on time."
+  },
+  {
+    "name": "Management & Leadership",
+    "slug": "management-and-leadership",
+    "description": "Develop the skills to lead teams and manage organizations effectively."
+  },
+  {
+    "name": "E-commerce",
+    "slug": "e-commerce",
+    "description": "Build and scale your own online store with Shopify, Amazon FBA, and more."
+  },
+  {
+    "name": "Sales",
+    "slug": "sales",
+    "description": "Master the art of persuasion, negotiation, and closing deals."
+  },
+  {
+    "name": "Human Resources",
+    "slug": "human-resources",
+    "description": "Learn talent acquisition, employee relations, and organizational culture."
+  },
+  {
+    "name": "Photography",
+    "slug": "photography",
+    "description": "Master your camera, composition, and photo editing."
+  },
+  {
+    "name": "Videography",
+    "slug": "videography",
+    "description": "Learn to shoot, edit, and produce high-quality videos."
+  },
+  {
+    "name": "Music Production",
+    "slug": "music-production",
+    "description": "Create, record, and mix music with DAWs like Ableton and Logic Pro."
+  },
+  {
+    "name": "Writing & Copywriting",
+    "slug": "writing-and-copywriting",
+    "description": "Craft compelling copy, fiction, and content that captivates readers."
+  },
+  {
+    "name": "3D & Animation",
+    "slug": "3d-and-animation",
+    "description": "Bring characters and worlds to life with 3D modeling and animation."
+  },
+  {
+    "name": "Fashion Design",
+    "slug": "fashion-design",
+    "description": "Learn sketching, sewing, and the business of fashion."
+  },
+  {
+    "name": "Interior Design",
+    "slug": "interior-design",
+    "description": "Learn the principles of space, color, and furnishing."
+  },
+  {
+    "name": "Personal Finance",
+    "slug": "personal-finance",
+    "description": "Manage your money, budget, save, and invest for the future."
+  },
+  {
+    "name": "Productivity",
+    "slug": "productivity",
+    "description": "Develop habits and systems to get more done in less time."
+  },
+  {
+    "name": "Public Speaking",
+    "slug": "public-speaking",
+    "description": "Speak with confidence and deliver powerful presentations."
+  },
+  {
+    "name": "Health & Fitness",
+    "slug": "health-and-fitness",
+    "description": "Learn about exercise, personal training, and building healthy habits."
+  },
+  {
+    "name": "Nutrition",
+    "slug": "nutrition",
+    "description": "Understand the science of food and how to eat for optimal health."
+  },
+  {
+    "name": "Mindfulness & Meditation",
+    "slug": "mindfulness-and-meditation",
+    "description": "Reduce stress and improve focus with mindfulness practices."
+  },
+  {
+    "name": "Language Learning",
+    "slug": "language-learning",
+    "description": "Learn to speak, read, and write in a new language."
+  },
+  {
+    "name": "Hobbies & Crafts",
+    "slug": "hobbies-and-crafts",
+    "description": "Explore creative hobbies like painting, knitting, and woodworking."
+  },
+  {
+    "name": "Mathematics",
+    "slug": "mathematics",
+    "description": "From algebra to calculus, strengthen your mathematical foundation."
+  },
+  {
+    "name": "Physics",
+    "slug": "physics",
+    "description": "Explore the fundamental laws of the universe, from classics to quantum."
+  },
+  {
+    "name": "Biology",
+    "slug": "biology",
+    "description": "Study the science of life, from molecular genetics to ecosystems."
+  },
+  {
+    "name": "Chemistry",
+    "slug": "chemistry",
+    "description": "Understand the building blocks of matter and their reactions."
+  },
+  {
+    "name": "Engineering",
+    "slug": "engineering",
+    "description": "Learn the principles of civil, mechanical, and electrical engineering."
+  },
+  {
+    "name": "History",
+    "slug": "history",
+    "description": "Explore the events and forces that shaped the modern world."
+  },
+  {
+    "name": "Psychology",
+    "slug": "psychology",
+    "description": "Understand the human mind, behavior, and social dynamics."
+  },
+  {
+    "name": "Software Testing (QA)",
+    "slug": "software-testing-qa",
+    "description": "Learn to find bugs and ensure software quality with manual and automation testing."
+  },
+  {
+    "name": "Database Management",
+    "slug": "database-management",
+    "description": "Master SQL and NoSQL databases like PostgreSQL, MySQL, and MongoDB."
+  },
+  {
+    "name": "Test Prep",
+    "slug": "test-prep",
+    "description": "Prepare for standardized tests like the SAT, GRE, GMAT, and more."
+  }
+]
+

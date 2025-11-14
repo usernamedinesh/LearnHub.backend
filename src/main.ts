@@ -7,6 +7,7 @@ import { setupShutdownHooks } from './config/shutdown.config';
 import { env } from './config/env.config';
 import { testDbConnection } from './config/db';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
+import { ResponseTimeInterceptor } from './common/interceptors/response-time.interceptor';
 import { AppModule } from './app.module';
 import cookieParser from 'cookie-parser';
 
@@ -22,11 +23,13 @@ async function bootstrap() {
       whitelist: true,
       transform: true,
       forbidNonWhitelisted: true,
+      transformOptions: { enableImplicitConversion: true },
     }),
   );
 
-  app.enableCors(corsConfig());
+  app.useGlobalInterceptors(new ResponseTimeInterceptor());
 
+  app.enableCors(corsConfig());
 
   app.use(cookieParser());
 
@@ -48,8 +51,8 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, document);
 
-await testDbConnection();
-await app.listen(env.PORT);
+  await testDbConnection();
+  await app.listen(env.PORT);
 
   logger.log(
     `🚀 Server is running at http://localhost:${env.PORT}/api`,

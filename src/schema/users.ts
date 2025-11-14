@@ -12,6 +12,8 @@ import {
   unique,
 } from 'drizzle-orm/pg-core';
 import { userRole } from './type';
+import { relations } from 'drizzle-orm';
+import { approvedInstructorStatusEnum } from './enum';
 
 export const users = pgTable(
   'users',
@@ -50,7 +52,7 @@ export const studentProfile = pgTable(
   'student_profile',
   {
     id: serial('id').primaryKey(),
-    userId: integer('user_id')
+    userId: integer('user_id') //TODO: need to change it student
       .notNull()
       .references(() => users.id),
     learningGoals: text('learning_goals'),
@@ -66,17 +68,15 @@ export const instructorProfiles = pgTable(
   'instructor_profiles',
   {
     id: serial('id').primaryKey(),
-    userId: integer('user_id')
+    userId: integer('user_id') //TODO: instructor
       .notNull()
       .references(() => users.id),
+
+    // channelName: varchar('channel_name', { length: 255 }),
+    channelName: varchar('channel_name', { length: 255 }).notNull().unique(),
+    channelThumbnail: varchar('channel_thumbnail', { length: 255 }),
     expertise: varchar('expertise', { length: 255 }).array(),
     socialLinks: jsonb('social_links').default({}),
-    averageRating: decimal('average_rating', {
-      precision: 3,
-      scale: 2,
-    }).default('0.00'),
-    totalReviews: integer('total_reviews').default(0),
-    totalStudents: integer('total_students').default(0),
     paymentDetails: jsonb('payment_details'),
     totalEarned: decimal('total_earned', { precision: 10, scale: 2 }).default(
       '0.00',
@@ -85,10 +85,20 @@ export const instructorProfiles = pgTable(
       precision: 10,
       scale: 2,
     }).default('0.00'),
-    approved: boolean('approved').default(false),
+    // approved: boolean('approved').default(false),
+    approvalStatus: approvedInstructorStatusEnum('approval_status').default('pending').notNull(),
     approvedAt: timestamp('approved_at'),
+    approvedBy: integer('approved_by').references(() => users.id),
+    rejectCount: integer("reject_count").default(0).notNull(),
   },
   (table) => ({
     userIdx: unique('instructor_user_idx').on(table.userId),
   }),
 );
+
+export const instructorRelations = relations(instructorProfiles, ({ one }) => ({
+    user: one(users, {
+        fields: [instructorProfiles.userId],
+        references: [users.id],
+    }),
+}));

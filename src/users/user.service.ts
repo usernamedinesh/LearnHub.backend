@@ -13,15 +13,16 @@ import { cleanNullUndefined } from 'src/common/filters/null-undefined.filter';
 import { CreateUserDto, LoginUserDto } from './user.dto';
 import { db } from 'src/config/db';
 import { studentProfile, users } from '../schema/users';
-import { and, eq, or } from 'drizzle-orm';
+import { and, eq, or, ilike } from 'drizzle-orm';
 import * as bcrypt from 'bcryptjs';
 import { SafeUser, User, userRole } from 'src/schema/type';
 import { AuthService } from 'src/auth/auth.service';
-import { omit } from 'zod/mini';
 import { updatePasswordDto } from './DTO/user.dto';
 import { plainToInstance } from 'class-transformer';
 import { UserResponseDto } from 'src/common/dto/response.dto';
+import { Roles } from 'src/auth/roles.decorator';
 
+type userTypes = "users" | "students";
 
 @Injectable()
 export class UserService {
@@ -91,32 +92,119 @@ export class UserService {
     }
   }
 
-  async findAll() {
-    try {
-      const allUsers = await db.select().from(users);
-      if (allUsers.length === 0) {
-        return {
-          status: 'success',
-          message: 'No user found!',
-        };
-      }
-      const usersWithoutPasswords = allUsers.map(
-        ({ password: _password, ...rest }) => rest,
-      );
+async findAll(
+  search: string = '',
+  limit: number = 30,
+  page: number = 1,
+  type: userTypes = "users",
+  status?: string,
+) {
+  try {
+    const skip = (page - 1) * limit;
+
+    if (type === 'students') {
+      const condition = [];
+      if (search) {
+          condition.push(ilike(studentProfile.learningGoals,`%${search}%` ));
+       }
+
+        //NO NEED I GUESS
+        // if (status == "active") {
+        //      condition.push(eq(users.isActive, true));
+        //  }else if (status == "inactive") {
+        //      condition.push(eq(users.isActive, false));
+        // }
+
+      const query = db
+        .select() // select all columns
+        .from(studentProfile)
+        .innerJoin(users, eq(users.id, studentProfile.userId))
+        .where(and(...condition));
+
+      const total = (await query.execute()).length;
+      const data = await query.limit(limit).offset(skip).execute();
 
       return {
-        status: 'success',
-        message: 'user fetched successfully',
-        data: usersWithoutPasswords,
-      };
-    } catch (error) {
-      console.error('DB error:', error);
-      return {
-        status: 'error',
-        message: 'Internal server error',
+        success: true,
+        message: `student fetched successfully`,
+        data,
+        pagination: {
+          total,
+          page,
+          limit,
+          totalPage: Math.ceil(total / limit),
+        },
       };
     }
+
+// users query
+const query = db
+  .select() // select all columns
+  .from(users)
+  .where(
+    and(
+      // Always filter by role
+      eq(users.role, userRole.User),
+
+      // Optional search filter
+      search
+        ? or(
+            ilike(users.fullName, `%${search}%`),
+            ilike(users.email, `%${search}%`),
+            ilike(users.phoneNumber, `%${search}%`)
+          )
+        : undefined,
+
+      // Optional status filter
+      status === 'active'
+        ? eq(users.isActive, true)
+        : status === 'inactive'
+        ? eq(users.isActive, false)
+        : undefined
+    )
+  );
+
+    // users query
+    // const query = db
+    //   .select() // select all columns
+    //   .from(users)
+    //   .where(
+    //     (search || true) // we will combine search and role filter
+    //       ? and(
+    //           eq(users.role, userRole.User ),
+    //           search
+    //             ? or(
+    //                 ilike(users.fullName, `%${search}%`),
+    //                 ilike(users.email, `%${search}%`),
+    //                 ilike(users.phoneNumber, `%${search}%`)
+    //               )
+    //             : undefined
+    //         )
+    //       : undefined
+    //   );
+
+    const total = (await query.execute()).length;
+    const data = await query.limit(limit).offset(skip).execute();
+
+    return {
+      success: true,
+      message: `user fetched successfully`,
+      data,
+      pagination: {
+        total,
+        page,
+        limit,
+        totalPage: Math.ceil(total / limit),
+      },
+    };
+  } catch (error) {
+    console.error('DB error:', error);
+    return {
+      status: 'error',
+      message: 'Internal server error',
+    };
   }
+}
 
   //ME
   async profile(userId: number) {
@@ -148,7 +236,6 @@ export class UserService {
   //LOGIN
   async login(loginDto: LoginUserDto) {
     const { email, password, phoneNumber, Roles } = loginDto;
-
     const conditions = [];
     if (email || phoneNumber) {
         conditions.push(
@@ -164,7 +251,6 @@ export class UserService {
     const user = await db.query.users.findFirst({
             where: and(...conditions),
         })
-
     if (!user) {
       throw new NotFoundException('User not found!');
     }

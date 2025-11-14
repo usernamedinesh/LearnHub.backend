@@ -7,20 +7,30 @@ import { RolesGuard } from "src/auth/role.guard";
 import { Roles } from "src/auth/roles.decorator";
 import { userRole } from "src/schema/type";
 import type { RequestWithUser } from "src/common/interface/request_interface";
+import { Admin } from "src/common/decorator/role.protected.decorator";
+import { CreateCategoryDto } from "src/category/Dto/category.dto";
+import { courseFilter } from "./interfaces/course.interface";
 
 @Controller('course')
 export class Course{
     constructor(private readonly courseService: CourseService){}
     // GET all Course
     @Get()
-    findAll() {
-        return this.courseService.getAllCourse();
+    async findAll() {
+        return await this.courseService.getAllCourse();
     }
 
     // GET single course
     @Get(':id')
-    getSingleCourse (@Param('id') id: number){
+    async getSingleCourse (@Param('id') id: number){
         return `sigle course with id${id}`;
+    }
+
+    // GET All Course By Instructor
+    @Get('instructor/:InstructorId')
+    async getCourseByInstructor (@Param('InstructorId') id: number){
+        console.log("InstructorID==>>>>>>>>", id)
+        return await this.courseService.get_course_by_instructor(id);
     }
 
     //CREATE COURSE
@@ -35,13 +45,20 @@ export class Course{
     }
 
     //DELETE post here
-    @Delete('del')
-    deleteCourse() {
-        return "DELETE POST HERE !"
+    @Admin()
+    @Delete('del/:id')
+    deleteCourse( @Param('id') id: string, @Request() req: RequestWithUser) {
+        return this.courseService.delete_course(id)
     }
 
     @Put('update')
     updateCourse(){
         return "UPDATE COURSE HERE !"
+    }
+
+    @Get('search')
+    searchCourse(){
+        let filter: courseFilter
+        return this.courseService.searchCourses("courses", filter);
     }
 }

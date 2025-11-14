@@ -11,6 +11,9 @@ import { JwtModule } from '@nestjs/jwt';
 import { env } from './config/env.config';
 import { CourseModule } from './course/course.module';
 import { AdminModule } from './admin/admin.module';
+import { CartModule } from './cart/cart.module';
+import { WishlistModule } from './wishlist/wishlist.module';
+import { CategoryModule } from './category/category.module';
 
 @Module({
   imports: [
@@ -29,7 +32,10 @@ import { AdminModule } from './admin/admin.module';
     UserModule,
     AuthModule,
     CourseModule,
-    AdminModule
+    AdminModule,
+    CartModule,
+    WishlistModule,
+    CategoryModule,
   ],
   controllers: [],
   providers: [

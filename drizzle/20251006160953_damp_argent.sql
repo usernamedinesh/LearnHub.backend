@@ -1,1 +1,0 @@
-ALTER TABLE "courses" ALTER COLUMN "tags" SET DATA TYPE text;

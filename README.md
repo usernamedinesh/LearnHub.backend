@@ -36,6 +36,9 @@ $ npm run start:dev
 $ npm run start:prod
 ```
 
+> pgcli -h localhost -U myuser -d mydb
+> pass: mypassword
+
 ## Run tests
 
 ```bash

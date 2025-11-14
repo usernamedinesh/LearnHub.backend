@@ -1,4 +1,4 @@
-import { Injectable, Post, Req, Res, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, Injectable, Post, Req, Res, UnauthorizedException } from '@nestjs/common';
 // import { SendOtpDto } from './dto/sendOtpDto';
 import { generateOtp, getOtpExpiry } from 'src/otp/otp.utils';
 import { EmailService } from 'src/email/email.service';
@@ -11,7 +11,7 @@ import { db } from 'src/config/db';
 import { eq } from 'drizzle-orm';
 import { instructorProfiles, otp, studentProfile, users } from 'src/schema';
 import { InstructorRequestDto } from './dto/instructorDto';
-import { ConfigService } from '@nestjs/config';
+import { success } from 'zod';
 
 export interface JwtPayload {
   userId: number;
@@ -181,21 +181,54 @@ export class AuthService {
   }
 
   async requestInstructor(dto: InstructorRequestDto, userId: number): Promise<any> {
+
+    const MAX_REJECT_COUNT = 5;
+
     const existingInstructor = await db.query.instructorProfiles.findFirst({
       where: eq(instructorProfiles.userId, userId)
     })
 
     if (existingInstructor) {
-      throw new Error("You have already submitted an insturcotr request")
+        if (existingInstructor.approvalStatus === "pending") {
+          return { success: true, message: "You hahe already submitted an instructor request!" };
+        }
+        if (existingInstructor.approvalStatus === "rejected") {
+            const rejectCount = existingInstructor.rejectCount || 0;
+
+            if (rejectCount >= MAX_REJECT_COUNT) {
+                return {
+                    success: false,
+                    message: "You have exceeded the maximum number of instructor requests."
+                };
+            }
+
+            // Reset profile to pending for re-submission
+            await db.update(instructorProfiles)
+                .set({ approvalStatus: "pending" })
+                .where(eq(instructorProfiles.userId, userId));
+
+            return {
+                success: true,
+                message: `Rejectet ${rejectCount} re-submission again !`
+            }
+        }
+
+          // If somehow approved already
+          return { success: true, message: "You are already an approved instructor!" };
+     }
+
+    if (!dto.channelName || typeof dto.channelName !== 'string') {
+      throw new BadRequestException('channelName is required and must be a string');
     }
 
     await db.insert(instructorProfiles).values({
       userId,
+      channelName: dto.channelName,
       expertise: dto.expertise,
       socialLinks: dto.socialLinks,
       paymentDetails: dto.paymentDetails,
       // approved remains false by default
-  });
+    });
 
     return {
       success: true,
